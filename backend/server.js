@@ -53,7 +53,12 @@ app.use(
   "/project-ai",
   projectAiRoutes
 )
-
+app.get("/", (req, res) => {
+  res.json({
+    status: "success",
+    message: "AI MultiAgent Project Manager Backend Running"
+  });
+});
 /* ========================= */
 /* SERVER */
 /* ========================= */
