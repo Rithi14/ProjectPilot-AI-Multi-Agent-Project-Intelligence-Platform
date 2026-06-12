@@ -1,0 +1,23 @@
+# Node Modules
+node_modules/
+
+# Environment
+.env
+
+# Uploads
+uploads/
+
+# ChromaDB
+chromadb/
+
+# Logs
+logs/
+*.log
+
+# Build Files
+dist/
+build/
+
+# OS Files
+.DS_Store
+Thumbs.db
