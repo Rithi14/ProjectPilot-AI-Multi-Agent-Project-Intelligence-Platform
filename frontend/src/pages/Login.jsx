@@ -4,7 +4,7 @@ import axios from "axios"
 
 import { useNavigate } from "react-router-dom"
 
-
+const API_URL = import.meta.env.VITE_API_URL;
 
 function Login() {
 
@@ -60,13 +60,10 @@ function Login() {
 
     try {
 
-      const res = await axios.post(
-
-        "http://localhost:5000/auth/login",
-
-        formData
-
-      )
+     const res = await axios.post(
+  `${API_URL}/auth/login`,
+  formData
+);
 
 
 
