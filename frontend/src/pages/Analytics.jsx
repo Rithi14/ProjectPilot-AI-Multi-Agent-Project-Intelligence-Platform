@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import axios from "axios"
 import jsPDF from "jspdf"
-
+const API_URL = import.meta.env.VITE_API_URL;
 import {
   BarChart,
   Bar,
@@ -40,20 +40,19 @@ const [weeklySummary, setWeeklySummary] =
     try {
 
       const projects =
-        await axios.get(
-          "http://localhost:5000/projects"
-        )
+  await axios.get(
+    `${API_URL}/projects`
+  )
 
-      const tasks =
-        await axios.get(
-          "http://localhost:5000/tasks"
-        )
+const tasks =
+  await axios.get(
+    `${API_URL}/tasks`
+  )
 
-      const meetings =
-        await axios.get(
-          "http://localhost:5000/meetings"
-        )
-
+const meetings =
+  await axios.get(
+    `${API_URL}/meetings`
+  )
       setStats({
 
         projects:

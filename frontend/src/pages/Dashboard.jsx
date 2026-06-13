@@ -5,6 +5,8 @@ import Documents from "./Documents"
 import MultiAgent from "./MultiAgent";
 import MeetingHistory from "./MeetingHistory"
 import Analytics from "./Analytics"
+const API_URL = import.meta.env.VITE_API_URL;
+
 function Dashboard() {
 
   // =========================
@@ -71,8 +73,8 @@ const [showPmOutput, setShowPmOutput] =  useState(false)
 
   useEffect(() => {
 
-    axios
-      .get("http://localhost:5000/projects")
+   axios
+  .get(`${API_URL}/projects`)
 
       .then((res) => {
 
@@ -101,7 +103,7 @@ const [showPmOutput, setShowPmOutput] =  useState(false)
   useEffect(() => {
 
     axios
-      .get("http://localhost:5000/tasks")
+  .get(`${API_URL}/tasks`)
 
       .then((res) => {
 
@@ -155,10 +157,10 @@ const createProject = async () => {
 
     if (editingProject) {
 
-      await axios.put(
-        `http://localhost:5000/projects/${editingProject.id}`,
-        formData
-      )
+     await axios.put(
+  `${API_URL}/projects/${editingProject.id}`,
+  formData
+)
 
       alert("Project Updated")
 
@@ -167,7 +169,7 @@ const createProject = async () => {
       // Create Project
      // Create Project
 const projectRes = await axios.post(
-  "http://localhost:5000/projects",
+  `${API_URL}/projects`,
   formData
 )
 
@@ -183,8 +185,8 @@ console.log(
      
 
       // AI Risk Analysis
-    const riskRes = await axios.post(
-  "http://localhost:5000/risk/analyze-risk",
+   const riskRes = await axios.post(
+  `${API_URL}/risk/analyze-risk`,
   {
     title: formData.title,
     description: formData.description,
@@ -198,7 +200,7 @@ console.log("ANALYSIS FIELD");
 console.log(riskRes.data.analysis);
 console.log(typeof riskRes.data.analysis);
 await axios.put(
-  `http://localhost:5000/risk/save-risk/${projectId}`,
+  `${API_URL}/risk/save-risk/${projectId}`,
   riskRes.data
 );
 
@@ -220,9 +222,9 @@ console.log(
 
     }
 
-    const res = await axios.get(
-      "http://localhost:5000/projects"
-    )
+   const res = await axios.get(
+  `${API_URL}/projects`
+)
 
     setProjects(res.data)
 
@@ -258,17 +260,14 @@ console.log(
 
     try {
 
-      await axios.post(
+     await axios.post(
+  `${API_URL}/tasks`,
+  taskData
+)
 
-        "http://localhost:5000/tasks",
-
-        taskData
-
-      )
-
-      const res = await axios.get(
-        "http://localhost:5000/tasks"
-      )
+const res = await axios.get(
+  `${API_URL}/tasks`
+)
 
       setTasks(res.data)
 
@@ -340,13 +339,13 @@ console.log(
 
     try {
 
-      await axios.delete(
-        `http://localhost:5000/projects/${id}`
-      )
+    await axios.delete(
+  `${API_URL}/projects/${id}`
+)
 
-      const res = await axios.get(
-        "http://localhost:5000/projects"
-      )
+const res = await axios.get(
+  `${API_URL}/projects`
+)
 
       setProjects(res.data)
 
@@ -393,14 +392,14 @@ console.log(
 
   try {
 
-    const res = await axios.post(
-      "http://localhost:5000/agents/planner",
-      {
-        projectId: selectedProject.id,
-        title: selectedProject.title,
-        description: selectedProject.description
-      }
-    )
+   const res = await axios.post(
+  `${API_URL}/agents/planner`,
+  {
+    projectId: selectedProject.id,
+    title: selectedProject.title,
+    description: selectedProject.description
+  }
+)
 
     setPlannerResult(
       res.data.response
@@ -431,14 +430,14 @@ const runDeveloperAgent = async () => {
 
   try {
 
-    const res = await axios.post(
-      "http://localhost:5000/agents/developer",
-      {
-        projectId: selectedProject.id,
-        title: selectedProject.title,
-        description: selectedProject.description
-      }
-    )
+   const res = await axios.post(
+  `${API_URL}/agents/developer`,
+  {
+    projectId: selectedProject.id,
+    title: selectedProject.title,
+    description: selectedProject.description
+  }
+)
 
     setDeveloperResult(
       res.data.response
@@ -472,14 +471,14 @@ const runTesterAgent = async () => {
 
   try {
 
-    const res = await axios.post(
-      "http://localhost:5000/agents/tester",
-      {
-        projectId: selectedProject.id,
-        title: selectedProject.title,
-        description: selectedProject.description
-      }
-    )
+   const res = await axios.post(
+  `${API_URL}/agents/tester`,
+  {
+    projectId: selectedProject.id,
+    title: selectedProject.title,
+    description: selectedProject.description
+  }
+)
 
     setTesterResult(
       res.data.response
@@ -511,14 +510,14 @@ const runSecurityAgent = async () => {
 
   try {
 
-    const res = await axios.post(
-      "http://localhost:5000/agents/security",
-      {
-        projectId: selectedProject.id,
-        title: selectedProject.title,
-        description: selectedProject.description
-      }
-    )
+   const res = await axios.post(
+  `${API_URL}/agents/security`,
+  {
+    projectId: selectedProject.id,
+    title: selectedProject.title,
+    description: selectedProject.description
+  }
+)
 
     setSecurityResult(
       res.data.response
@@ -549,14 +548,16 @@ const runDocumentationAgent = async () => {
 
   try {
 
-    const res = await axios.post(
-      "http://localhost:5000/agents/documentation",
-      {
-        projectId: selectedProject.id,
-        title: selectedProject.title,
-        description: selectedProject.description
-      }
-    )
+   const API_URL = import.meta.env.VITE_API_URL;
+
+const res = await axios.post(
+  `${API_URL}/agents/documentation`,
+  {
+    projectId: selectedProject.id,
+    title: selectedProject.title,
+    description: selectedProject.description
+  }
+)
 
     setDocumentationResult(
       res.data.response
@@ -588,13 +589,13 @@ const runCostAgent = async () => {
   try {
 
     const res = await axios.post(
-      "http://localhost:5000/agents/cost",
-      {
-        projectId: selectedProject.id,
-        title: selectedProject.title,
-        description: selectedProject.description
-      }
-    )
+  `${API_URL}/agents/cost`,
+  {
+    projectId: selectedProject.id,
+    title: selectedProject.title,
+    description: selectedProject.description
+  }
+)
 
     setCostResult(
       res.data.response
@@ -625,14 +626,16 @@ const runPmAgent = async () => {
 
   try {
 
-    const res = await axios.post(
-      "http://localhost:5000/agents/pm",
-      {
-        projectId: selectedProject.id,
-        title: selectedProject.title,
-        description: selectedProject.description
-      }
-    )
+  
+
+const res = await axios.post(
+  `${API_URL}/agents/pm`,
+  {
+    projectId: selectedProject.id,
+    title: selectedProject.title,
+    description: selectedProject.description
+  }
+)
 
     setPmResult(
       res.data.response

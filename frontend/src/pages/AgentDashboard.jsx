@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import axios from "axios"
-
+const API_URL = import.meta.env.VITE_API_URL;
 function AgentDashboard() {
 
   // =========================
@@ -30,8 +30,7 @@ function AgentDashboard() {
 
   useEffect(() => {
 
-    axios
-      .get("http://localhost:5000/tasks")
+   axios.get(`${API_URL}/tasks`)
 
       .then((res) => {
 
@@ -62,10 +61,10 @@ function AgentDashboard() {
 
     try {
 
-      await axios.put(
-        `http://localhost:5000/tasks/${id}`,
-        { status }
-      )
+     await axios.put(
+  `${API_URL}/tasks/${id}`,
+  { status }
+)
 
       const updatedTasks = tasks.map((task) =>
 

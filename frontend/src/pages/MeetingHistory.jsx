@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import axios from "axios"
 import jsPDF from "jspdf"
+const API_URL = import.meta.env.VITE_API_URL;
 
 function MeetingHistory() {
 
@@ -27,9 +28,9 @@ function MeetingHistory() {
     try {
 
       const res =
-        await axios.get(
-          "http://localhost:5000/meetings"
-        )
+       await axios.get(
+  `${API_URL}/meetings`
+)
 
       setMeetings(res.data)
 
@@ -61,21 +62,14 @@ function MeetingHistory() {
 
     try {
 
-      const res =
-        await axios.post(
-
-          "http://localhost:5000/project-ai",
-
-          {
-
-            meetingId:
-              selectedMeeting.id,
-
-            question
-
-          }
-
-        )
+     const res =
+  await axios.post(
+    `${API_URL}/project-ai`,
+    {
+      meetingId: selectedMeeting.id,
+      question
+    }
+  )
 
       setAnswer(
         res.data.answer
@@ -104,8 +98,8 @@ function MeetingHistory() {
     try {
 
       await axios.delete(
-        `http://localhost:5000/meetings/${id}`
-      )
+  `${API_URL}/meetings/${id}`
+)
 
       fetchMeetings()
 

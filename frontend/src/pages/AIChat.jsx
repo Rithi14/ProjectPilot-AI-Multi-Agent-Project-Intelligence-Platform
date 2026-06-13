@@ -1,6 +1,6 @@
 import { useState } from "react"
 import axios from "axios"
-
+const API_URL = import.meta.env.VITE_API_URL;
 function AIChat() {
 
 const [prompt, setPrompt] =
@@ -39,15 +39,10 @@ try {
   ) {
 
     const res =
-      await axios.post(
-
-        "http://localhost:5000/ai/chat",
-
-        {
-          prompt
-        }
-
-      )
+     await axios.post(
+  `${API_URL}/ai/chat`,
+  { prompt }
+)
 
     answer =
       res.data.response
@@ -57,15 +52,10 @@ try {
   else {
 
     const res =
-      await axios.post(
-
-        "http://localhost:5000/rag/ask",
-
-        {
-          question: prompt
-        }
-
-      )
+     await axios.post(
+  `${API_URL}/rag/ask`,
+  { question: prompt }
+)
 
     answer =
       res.data.answer
