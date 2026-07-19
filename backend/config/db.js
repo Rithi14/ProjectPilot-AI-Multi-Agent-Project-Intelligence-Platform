@@ -1,25 +1,25 @@
 const mysql = require("mysql2");
 
 const db = mysql.createConnection({
-  host: process.env.MYSQLHOST,
-  user: process.env.MYSQLUSER,
-  password: process.env.MYSQLPASSWORD,
-  database: "railway", // Temporary hardcoded database name
-  port: process.env.MYSQLPORT
+  host: "localhost",
+  user: "root",
+  password: "rithi@123",           // Enter your MySQL password here
+  database: "cowork_ai", // Your local database name
+  port: 3306
 });
 
 db.connect((err) => {
   if (err) {
-    console.log("Database connection failed");
+    console.log("❌ Database connection failed");
     console.log(err);
   } else {
-    console.log("MySQL Connected");
+    console.log("✅ MySQL Connected Successfully");
 
     db.query("SELECT DATABASE() AS db", (err, result) => {
       if (err) {
         console.log(err);
       } else {
-        console.log("Current Database:", result);
+        console.log("Current Database:", result[0].db);
       }
     });
   }
