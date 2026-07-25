@@ -1,65 +1,56 @@
 const {
   getCollection
-} = require("./vectorStore")
+} = require("./vectorStore");
 
 const {
   createEmbedding
-} = require("./embedder")
+} = require("./embedder");
 
 function cosineSimilarity(a, b) {
 
-  let dot = 0
-  let normA = 0
-  let normB = 0
+  let dot = 0;
+  let normA = 0;
+  let normB = 0;
 
   for (let i = 0; i < a.length; i++) {
 
-    dot += a[i] * b[i]
-    normA += a[i] * a[i]
-    normB += b[i] * b[i]
+    dot += a[i] * b[i];
+    normA += a[i] * a[i];
+    normB += b[i] * b[i];
 
   }
 
-  return dot /
-    (
-      Math.sqrt(normA) *
-      Math.sqrt(normB)
-    )
+  return dot / (Math.sqrt(normA) * Math.sqrt(normB));
 
 }
 
-async function searchChunks(question) {
+async function searchChunks(question, topK = 5) {
 
-  const queryEmbedding =
-    await createEmbedding(question)
+  const queryEmbedding = await createEmbedding(question);
 
-  const chunks =
-    await getCollection()
+  const chunks = await getCollection();
 
-  let bestChunk = null
-  let bestScore = -1
+  const scoredChunks = chunks.map(chunk => ({
 
-  for (const chunk of chunks) {
+    text: chunk.text,
 
-    const score =
-      cosineSimilarity(
-        queryEmbedding,
-        chunk.embedding
-      )
+    score: cosineSimilarity(
+      queryEmbedding,
+      chunk.embedding
+    )
 
-    if (score > bestScore) {
+  }));
 
-      bestScore = score
-      bestChunk = chunk.text
+  scoredChunks.sort((a, b) => b.score - a.score);
 
-    }
+  const topChunks = scoredChunks
+    .slice(0, topK)
+    .map(chunk => chunk.text);
 
-  }
-
-  return bestChunk
+  return topChunks.join("\n\n");
 
 }
 
 module.exports = {
   searchChunks
-}
+};
