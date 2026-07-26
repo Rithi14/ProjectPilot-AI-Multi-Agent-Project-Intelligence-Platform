@@ -1,112 +1,127 @@
-const axios = require("axios");
+require("dotenv").config();
 
-const OLLAMA_URL = "http://localhost:11434/api/generate";
-const MODEL = "llama3.2";
+const Groq = require("groq-sdk");
+
+const groq = new Groq({
+  apiKey: process.env.GROQ_API_KEY
+});
+
+const MODEL = process.env.MODEL || "llama-3.3-70b-versatile";
 
 async function askLLM(question, context, history = []) {
 
-  const historyText = history
-    .slice(-5)
-    .map(item => `User: ${item.question}\nAssistant: ${item.answer}`)
-    .join("\n\n");
+  const messages = [
+    {
+      role: "system",
+      content: `
+You are a Retrieval-Augmented AI Assistant.
 
-  const prompt = `
-You are a Retrieval Augmented Generation (RAG) assistant.
+Rules:
 
-IMPORTANT RULES
+- Answer ONLY using the provided PDF context.
+- Never invent information.
+- Never use outside knowledge.
+- If the answer is missing, say:
+"I couldn't find the answer in the uploaded PDF."
 
-1. Answer ONLY using the provided PDF context.
-2. NEVER use your own knowledge.
-3. NEVER guess.
-4. NEVER invent information.
-5. If the answer is not completely present inside the context, reply EXACTLY:
+If the answer exists:
+- Explain clearly.
+- Use headings.
+- Use bullet points.
+- Use examples from the PDF whenever possible.
+`
+    }
+  ];
 
-I couldn't find the answer in the uploaded PDF.
+  history.slice(-10).forEach(chat => {
+    messages.push({
+      role: "user",
+      content: chat.question
+    });
 
-6. If the context contains the answer, explain it in detail.
-
-Conversation History:
-${historyText}
-
-=========================
-PDF CONTEXT
-=========================
-${context}
-
-=========================
-USER QUESTION
-=========================
-${question}
-
-Provide:
-
-- A detailed explanation
-- Bullet points where appropriate
-- Simple English
-- Do not mention outside knowledge
-`;
-
-  const response = await axios.post(OLLAMA_URL, {
-    model: MODEL,
-    prompt,
-    stream: false
+    messages.push({
+      role: "assistant",
+      content: chat.answer
+    });
   });
 
-  return response.data.response.trim();
+  messages.push({
+    role: "user",
+    content: `
+PDF Context:
+
+${context}
+
+Question:
+
+${question}
+`
+  });
+
+  const response = await groq.chat.completions.create({
+    model: MODEL,
+    temperature: 0.2,
+    messages
+  });
+
+  return response.choices[0].message.content;
 }
 
 async function suggestQuestions(context, question) {
 
-  const prompt = `
-You are reading an uploaded PDF.
+  const response = await groq.chat.completions.create({
 
+    model: MODEL,
+
+    temperature: 0.4,
+
+    response_format: {
+      type: "json_object"
+    },
+
+    messages: [
+      {
+        role: "system",
+        content:
+          "Generate 6 follow-up questions from the PDF context."
+      },
+      {
+        role: "user",
+        content: `
 Context:
+
 ${context}
 
-Current Question:
+Question:
+
 ${question}
 
-Generate 6 follow-up questions.
+Return JSON:
 
-Rules:
-
-- They MUST come only from the PDF context.
-- They must be related to the user's question.
-- Do not repeat the current question.
-- Do not answer them.
-- Return ONLY a JSON array.
-
-Example:
-
-[
-"What is Artificial Intelligence?",
-"What are the types of AI?",
-"How does Machine Learning work?",
-"What are AI applications?",
-"What are the advantages of AI?",
-"What are AI limitations?"
-]
-`;
-
-  const response = await axios.post(OLLAMA_URL, {
-    model: MODEL,
-    prompt,
-    stream: false
+{
+ "questions":[
+   "...",
+   "...",
+   "...",
+   "...",
+   "...",
+   "..."
+ ]
+}
+`
+      }
+    ]
   });
 
   try {
 
-    const output = response.data.response.trim();
+    const json = JSON.parse(
+      response.choices[0].message.content
+    );
 
-    const match = output.match(/\[[\s\S]*\]/);
+    return json.questions || [];
 
-    if (!match) return [];
-
-    return JSON.parse(match[0]);
-
-  } catch (err) {
-
-    console.log("Suggestion Error:", err.message);
+  } catch {
 
     return [];
 
