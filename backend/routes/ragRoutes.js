@@ -2,80 +2,73 @@ const express = require("express");
 const { searchChunks } = require("../rag/search");
 const {
   askLLM,
-  suggestQuestions
+  suggestQuestions,
 } = require("../ai_service/ollamaClient");
 
 const router = express.Router();
 
 router.get("/", (req, res) => {
-  res.send("RAG Route Working");
+  res.send("✅ RAG Route Working");
 });
 
 router.post("/ask", async (req, res) => {
   try {
-    const { question, history } = req.body;
+    const { question, history = [] } = req.body;
 
     if (!question || question.trim() === "") {
       return res.status(400).json({
         success: false,
-        answer: "Question is required",
-        suggestions: []
+        answer: "Question is required.",
+        suggestions: [],
+        history: [],
       });
     }
 
-    const safeHistory = Array.isArray(history)
-      ? history
-      : [];
-
-    // Retrieve relevant chunks from PDF
+    // Search relevant PDF chunks
     const context = await searchChunks(question);
 
-    if (!context || context.trim().length === 0) {
+    if (!context || context.trim() === "") {
       return res.json({
         success: true,
-        answer: "No relevant information found in the uploaded PDF.",
+        answer: "I couldn't find the answer in the uploaded PDF.",
         suggestions: [],
-        history: safeHistory
+        history,
       });
     }
 
-    // Generate answer
-    const finalAnswer = await askLLM(
-      question,
-      context,
-      safeHistory
-    );
+    // Ask LLM
+    const answer = await askLLM(question, context, history);
 
-    // Generate follow-up questions
-    const suggestions = await suggestQuestions(
-      context,
-      question
-    );
+    // Suggested questions
+    const suggestions = await suggestQuestions(context, question);
 
-    // Save conversation
+    // Update history
     const updatedHistory = [
-      ...safeHistory,
+      ...history,
       {
         question,
-        answer: finalAnswer
-      }
+        answer,
+      },
     ];
 
-    res.json({
+    return res.json({
       success: true,
-      answer: finalAnswer,
+      answer,
       suggestions,
-      history: updatedHistory
+      history: updatedHistory,
     });
 
   } catch (error) {
 
-    console.error("RAG Error:", error);
+    console.error("========== RAG ERROR ==========");
+    console.error(error);
+    console.error("===============================");
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
-      answer: "RAG Failed",
-      suggestions: []
+      answer: error.message,
+      suggestions: [],
+      history: [],
     });
 
   }

@@ -8,6 +8,10 @@ const groq = new Groq({
 
 const MODEL = process.env.MODEL || "llama-3.3-70b-versatile";
 
+/* ===================================================
+   ASK LLM
+=================================================== */
+
 async function askLLM(question, context, history = []) {
 
   const messages = [
@@ -16,35 +20,23 @@ async function askLLM(question, context, history = []) {
       content: `
 You are an intelligent Retrieval-Augmented AI Assistant.
 
-Your job is to answer ONLY from the uploaded PDF.
+Rules:
 
-==========================
-RULES
-==========================
-
-1. Use ONLY the PDF context.
-2. Never use outside knowledge.
-3. Never guess.
-4. Never invent facts.
-5. If the answer is missing, reply EXACTLY:
+- Answer ONLY using the uploaded PDF.
+- Never use outside knowledge.
+- Never invent information.
+- If the answer is missing reply exactly:
 
 I couldn't find the answer in the uploaded PDF.
 
-6. If the answer exists:
+If the answer exists:
 
-• Answer in Markdown.
-• Use headings.
-• Use bullet points.
-• Use numbered lists where appropriate.
-• Highlight important words using **bold**.
-• Explain in simple English.
-• Give examples ONLY if they appear in the PDF.
-• Keep the answer well structured.
-• Do not mention "According to the context" or "Based on the PDF."
-• Answer naturally like ChatGPT.
-
-7. If the user asks a follow-up question, use the previous conversation only for continuity.
-Never use previous answers as knowledge.
+- Use Markdown
+- Use headings
+- Use bullet points
+- Highlight important words
+- Explain clearly
+- Give examples only if found in the PDF
 `
     }
   ];
@@ -66,25 +58,114 @@ Never use previous answers as knowledge.
   messages.push({
     role: "user",
     content: `
-==========================
-PDF CONTEXT
-==========================
+PDF Context:
 
 ${context}
 
-==========================
-QUESTION
-==========================
+Question:
 
 ${question}
 `
   });
 
-  const response = await groq.chat.completions.create({
-    model: MODEL,
-    temperature: 0.1,
-    messages
-  });
+  const response =
+    await groq.chat.completions.create({
+
+      model: MODEL,
+
+      temperature: 0.2,
+
+      messages
+
+    });
 
   return response.choices[0].message.content.trim();
+
 }
+
+/* ===================================================
+   FOLLOW-UP QUESTIONS
+=================================================== */
+
+async function suggestQuestions(context, question) {
+
+  try {
+
+    const response =
+      await groq.chat.completions.create({
+
+        model: MODEL,
+
+        temperature: 0.4,
+
+        response_format: {
+          type: "json_object"
+        },
+
+        messages: [
+
+          {
+            role: "system",
+            content:
+              "Generate exactly 6 follow-up questions based ONLY on the PDF."
+          },
+
+          {
+            role: "user",
+            content: `
+Context:
+
+${context}
+
+Question:
+
+${question}
+
+Return ONLY JSON.
+
+{
+ "questions":[
+   "...",
+   "...",
+   "...",
+   "...",
+   "...",
+   "..."
+ ]
+}
+`
+          }
+
+        ]
+
+      });
+
+    const json = JSON.parse(
+      response.choices[0].message.content
+    );
+
+    return json.questions || [];
+
+  }
+
+  catch (err) {
+
+    console.log("Suggestion Error:", err.message);
+
+    return [];
+
+  }
+
+}
+
+/* ===================================================
+   EXPORTS
+=================================================== */
+
+module.exports = {
+
+  askLLM,
+
+  suggestQuestions
+
+};
