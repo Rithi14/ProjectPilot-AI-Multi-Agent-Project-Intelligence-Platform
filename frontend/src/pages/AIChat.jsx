@@ -1,423 +1,249 @@
-import { useState } from "react"
-import axios from "axios"
+import { useState, useEffect, useRef } from "react";
+import axios from "axios";
+import ReactMarkdown from "react-markdown";
+
 const API_URL = import.meta.env.VITE_API_URL;
+
 function AIChat() {
+  const [prompt, setPrompt] = useState("");
+  const [messages, setMessages] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [chatMode, setChatMode] = useState("normal"); // "normal" | "rag"
+  const [history, setHistory] = useState([]);
+  const [suggestions, setSuggestions] = useState([]);
+  const bottomRef = useRef(null);
 
-const [prompt, setPrompt] =
-useState("")
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
-const [messages, setMessages] =
-useState([])
+  const askAI = async (customPrompt) => {
+    const question = (customPrompt ?? prompt).trim();
 
-const [loading, setLoading] =
-useState(false)
-
-const [chatMode, setChatMode] =
-useState("normal")
-
-const askAI = async () => {
-
-
-if (!prompt.trim()) {
-
-  alert(
-    "Please enter a question"
-  )
-
-  return
-
-}
-
-try {
-
-  setLoading(true)
-
-  let answer = ""
-
-  if (
-    chatMode === "normal"
-  ) {
-
-    const res =
-     await axios.post(
-  `${API_URL}/ai/chat`,
-  { prompt }
-)
-
-    answer =
-      res.data.response
-
-  }
-
-  else {
-
-    const res =
-     await axios.post(
-  `${API_URL}/rag/ask`,
-  { question: prompt }
-)
-
-    answer =
-      res.data.answer
-
-  }
-
-  setMessages(prev => [
-
-    ...prev,
-
-    {
-      type: "user",
-      text: prompt
-    },
-
-    {
-      type: "ai",
-      text: answer
+    if (!question) {
+      alert("Please enter a question");
+      return;
     }
 
-  ])
+    try {
+      setLoading(true);
+      let answer = "";
 
-  setPrompt("")
+      if (chatMode === "normal") {
+        const res = await axios.post(`${API_URL}/ai/chat`, {
+          prompt: question,
+        });
+        answer = res.data.response;
+      } else {
+        // Build question/answer pairs from existing messages for RAG context
+        const pairHistory = messages
+          .filter((m) => m.type === "user" || m.type === "ai")
+          .reduce((arr, msg, index) => {
+            if (msg.type === "user") {
+              arr.push({
+                question: msg.text,
+                answer: messages[index + 1]?.text || "",
+              });
+            }
+            return arr;
+          }, []);
 
-}
+        const res = await axios.post(`${API_URL}/rag/ask`, {
+          question,
+          history: pairHistory,
+        });
 
-catch (error) {
+        answer = res.data.answer;
+        setHistory(res.data.history);
+        setSuggestions(res.data.suggestions || []);
+      }
 
-  console.log(error)
+      // Single place where messages get added, for both modes
+      setMessages((prev) => [
+        ...prev,
+        { type: "user", text: question },
+        { type: "ai", text: answer },
+      ]);
 
-  setMessages(prev => [
-
-    ...prev,
-
-    {
-      type: "ai",
-      text:
-        "❌ Error connecting to AI"
+      setPrompt("");
+    } catch (error) {
+      console.log(error);
+      setMessages((prev) => [
+        ...prev,
+        { type: "ai", text: "❌ Error connecting to AI" },
+      ]);
+    } finally {
+      setLoading(false);
     }
+  };
 
-  ])
-
-}
-
-finally {
-
-  setLoading(false)
-
-}
-
-
-}
-
-return (
-
-
-<div
-  style={{
-    width: "100%",
-    color: "white"
-  }}
->
-
-  <h1
-    style={{
-      color: "#b86cff",
-      fontSize: "32px",
-      fontWeight: "bold",
-      marginBottom: "20px"
-    }}
-  >
-    🤖 AI Assistant
-  </h1>
-
-  <div
-    style={{
-      display: "flex",
-      gap: "10px",
-      marginBottom: "20px"
-    }}
-  >
-
-    <button
-
-      onClick={() =>
-        setChatMode(
-          "normal"
-        )
-      }
-
-      style={{
-        background:
-          chatMode === "normal"
-            ? "#2563eb"
-            : "#1f2937",
-
-        color: "white",
-
-        border: "none",
-
-        padding:
-          "10px 20px",
-
-        borderRadius:
-          "10px",
-
-        cursor:
-          "pointer"
-      }}
-
-    >
-
-      🤖 Normal AI
-
-    </button>
-
-    <button
-
-      onClick={() =>
-        setChatMode(
-          "rag"
-        )
-      }
-
-      style={{
-        background:
-          chatMode === "rag"
-            ? "#9333ea"
-            : "#1f2937",
-
-        color: "white",
-
-        border: "none",
-
-        padding:
-          "10px 20px",
-
-        borderRadius:
-          "10px",
-
-        cursor:
-          "pointer"
-      }}
-
-    >
-
-      📚 RAG Mode
-
-    </button>
-
-  </div>
-
-  <p
-    style={{
-      color: "#9ca3af",
-      marginBottom: "15px"
-    }}
-  >
-
-    Current Mode :
-
-    {" "}
-
-    <span
-      style={{
-        color:
-          chatMode === "normal"
-            ? "#60a5fa"
-            : "#c084fc"
-      }}
-    >
-
-      {
-        chatMode === "normal"
-          ? "Normal AI"
-          : "Knowledge Base (RAG)"
-      }
-
-    </span>
-
-  </p>
-
-  <textarea
-
-    rows="6"
-
-    placeholder={
-      chatMode === "normal"
-        ? "Ask anything..."
-        : "Ask from uploaded PDF..."
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      askAI();
     }
+  };
 
-    value={prompt}
+  return (
+    <div style={{ width: "100%", color: "white" }}>
+      <h1
+        style={{
+          color: "#b86cff",
+          fontSize: "32px",
+          fontWeight: "bold",
+          marginBottom: "20px",
+        }}
+      >
+        🤖 AI Assistant
+      </h1>
 
-    onChange={(e) =>
-      setPrompt(
-        e.target.value
-      )
-    }
+      <div style={{ display: "flex", gap: "10px", marginBottom: "20px" }}>
+        <button
+          onClick={() => setChatMode("normal")}
+          style={{
+            background: chatMode === "normal" ? "#2563eb" : "#1f2937",
+            color: "white",
+            border: "none",
+            padding: "10px 20px",
+            borderRadius: "10px",
+            cursor: "pointer",
+          }}
+        >
+          🤖 Normal AI
+        </button>
 
-    style={{
-      width: "100%",
-      padding: "18px",
-      borderRadius: "12px",
-      border:
-        "1px solid #b86cff",
-      background:
-        "#0b1437",
-      color: "white",
-      fontSize: "16px"
-    }}
+        <button
+          onClick={() => setChatMode("rag")}
+          style={{
+            background: chatMode === "rag" ? "#9333ea" : "#1f2937",
+            color: "white",
+            border: "none",
+            padding: "10px 20px",
+            borderRadius: "10px",
+            cursor: "pointer",
+          }}
+        >
+          📚 RAG Mode
+        </button>
+      </div>
 
-  />
-
-  <div
-    style={{
-      marginTop: "20px"
-    }}
-  >
-
-    <button
-
-      onClick={askAI}
-
-      disabled={loading}
-
-      style={{
-        background:
-          chatMode === "normal"
-            ? "#2563eb"
-            : "#9333ea",
-
-        color: "white",
-
-        border: "none",
-
-        padding:
-          "14px 28px",
-
-        borderRadius:
-          "10px",
-
-        cursor:
-          "pointer",
-
-        fontWeight:
-          "600"
-      }}
-
-    >
-
-      {
-        loading
-          ? "Thinking..."
-          : "Ask AI"
-      }
-
-    </button>
-
-  </div>
-
-  <div
-
-    style={{
-      marginTop: "30px",
-      minHeight: "400px",
-      background: "#0b1437",
-      padding: "25px",
-      borderRadius: "12px",
-      border:
-        "1px solid #b86cff",
-      overflowY:
-        "auto"
-    }}
-
-  >
-
-    {
-
-      messages.length === 0 &&
-
-      <p>
-        Start chatting with AI...
+      <p style={{ color: "#9ca3af", marginBottom: "15px" }}>
+        Current Mode:{" "}
+        <span
+          style={{
+            color: chatMode === "normal" ? "#60a5fa" : "#c084fc",
+          }}
+        >
+          {chatMode === "normal" ? "Normal AI" : "Knowledge Base (RAG)"}
+        </span>
       </p>
 
-    }
+      <textarea
+        rows="6"
+        placeholder={
+          chatMode === "normal" ? "Ask anything..." : "Ask from uploaded PDF..."
+        }
+        value={prompt}
+        onChange={(e) => setPrompt(e.target.value)}
+        onKeyDown={handleKeyDown}
+        disabled={loading}
+        style={{
+          width: "100%",
+          padding: "18px",
+          borderRadius: "12px",
+          border: "1px solid #b86cff",
+          background: "#0b1437",
+          color: "white",
+          fontSize: "16px",
+        }}
+      />
 
-    {
+      <div style={{ marginTop: "20px" }}>
+        <button
+          onClick={() => askAI()}
+          disabled={loading}
+          style={{
+            background: chatMode === "normal" ? "#2563eb" : "#9333ea",
+            color: "white",
+            border: "none",
+            padding: "14px 28px",
+            borderRadius: "10px",
+            cursor: loading ? "not-allowed" : "pointer",
+            fontWeight: "600",
+            opacity: loading ? 0.7 : 1,
+          }}
+        >
+          {loading ? "Thinking..." : "Ask AI"}
+        </button>
+      </div>
 
-      messages.map(
+      {chatMode === "rag" && suggestions.length > 0 && (
+        <div
+          style={{
+            marginTop: "15px",
+            display: "flex",
+            flexWrap: "wrap",
+            gap: "8px",
+          }}
+        >
+          {suggestions.map((s, i) => (
+            <button
+              key={i}
+              onClick={() => askAI(s)}
+              disabled={loading}
+              style={{
+                background: "#1f2937",
+                color: "#c084fc",
+                border: "1px solid #9333ea",
+                padding: "8px 14px",
+                borderRadius: "20px",
+                cursor: "pointer",
+                fontSize: "14px",
+              }}
+            >
+              {s}
+            </button>
+          ))}
+        </div>
+      )}
 
-        (msg, index) => (
+      <div
+        style={{
+          marginTop: "30px",
+          minHeight: "400px",
+          background: "#0b1437",
+          padding: "25px",
+          borderRadius: "12px",
+          border: "1px solid #b86cff",
+          overflowY: "auto",
+        }}
+      >
+        {messages.length === 0 && <p>Start chatting with AI...</p>}
 
+        {messages.map((msg, index) => (
           <div
-
             key={index}
-
             style={{
-
-              background:
-
-                msg.type === "user"
-                  ? "#2563eb"
-                  : "#1e293b",
-
+              background: msg.type === "user" ? "#2563eb" : "#1e293b",
               padding: "15px",
-
               borderRadius: "12px",
-
               marginBottom: "15px",
-
               maxWidth: "85%",
-
-              marginLeft:
-
-                msg.type === "user"
-                  ? "auto"
-                  : "0",
-
-              whiteSpace:
-                "pre-wrap",
-
-              overflowWrap:
-                "break-word"
-
+              marginLeft: msg.type === "user" ? "auto" : "0",
+              whiteSpace: "pre-wrap",
+              overflowWrap: "break-word",
             }}
-
           >
-
-            <strong>
-
-              {
-
-                msg.type === "user"
-                  ? "You"
-                  : "AI"
-
-              }
-
-              :
-
-            </strong>
-
+            <strong>{msg.type === "user" ? "You" : "AI"}:</strong>
             <br />
-
-            {msg.text}
-
+            <ReactMarkdown>{msg.text}</ReactMarkdown>
           </div>
+        ))}
 
-        )
-
-      )
-
-    }
-
-  </div>
-
-</div>
-
-
-)
-
+        <div ref={bottomRef} />
+      </div>
+    </div>
+  );
 }
 
-export default AIChat
+export default AIChat;
