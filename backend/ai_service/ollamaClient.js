@@ -1,37 +1,53 @@
 const axios = require("axios");
 
+const OLLAMA_URL = "http://localhost:11434/api/generate";
+const MODEL = "llama3.2";
+
 async function askLLM(question, context, history = []) {
 
   const historyText = history
-    .slice(-3) // keep last 3 turns for context, avoid prompt bloat
-    .map(h => `Q: ${h.question}\nA: ${h.answer}`)
+    .slice(-5)
+    .map(item => `User: ${item.question}\nAssistant: ${item.answer}`)
     .join("\n\n");
 
   const prompt = `
-You are an AI assistant answering questions about an uploaded PDF.
+You are a Retrieval Augmented Generation (RAG) assistant.
 
-You must answer ONLY using the given context. Do NOT use outside knowledge.
+IMPORTANT RULES
 
-If the answer is not present in the context, reply:
-"I couldn't find the answer in the uploaded PDF."
+1. Answer ONLY using the provided PDF context.
+2. NEVER use your own knowledge.
+3. NEVER guess.
+4. NEVER invent information.
+5. If the answer is not completely present inside the context, reply EXACTLY:
 
-${historyText ? `Previous conversation (for continuity only, don't repeat it):\n${historyText}\n` : ""}
+I couldn't find the answer in the uploaded PDF.
 
-Context:
+6. If the context contains the answer, explain it in detail.
+
+Conversation History:
+${historyText}
+
+=========================
+PDF CONTEXT
+=========================
 ${context}
 
-Question:
+=========================
+USER QUESTION
+=========================
 ${question}
 
-Instructions:
-1. Give a detailed explanation.
-2. Use bullet points whenever appropriate.
-3. Explain in simple English.
-4. If this question follows up on the previous conversation, keep your answer consistent with it.
+Provide:
+
+- A detailed explanation
+- Bullet points where appropriate
+- Simple English
+- Do not mention outside knowledge
 `;
 
-  const response = await axios.post("http://localhost:11434/api/generate", {
-    model: "llama3.2",
+  const response = await axios.post(OLLAMA_URL, {
+    model: MODEL,
     prompt,
     stream: false
   });
@@ -42,37 +58,60 @@ Instructions:
 async function suggestQuestions(context, question) {
 
   const prompt = `
-You are reading a PDF.
+You are reading an uploaded PDF.
 
 Context:
 ${context}
 
-The user just asked: "${question}"
+Current Question:
+${question}
 
-Generate 6 meaningful follow-up questions that dig deeper into this same topic, based only on the context above.
+Generate 6 follow-up questions.
 
 Rules:
-- Questions must come only from the context.
-- Do NOT repeat the question the user just asked.
-- Do NOT answer them.
-- Return ONLY a JSON array of 6 strings, nothing else.
+
+- They MUST come only from the PDF context.
+- They must be related to the user's question.
+- Do not repeat the current question.
+- Do not answer them.
+- Return ONLY a JSON array.
 
 Example:
-["Question 1","Question 2","Question 3","Question 4","Question 5","Question 6"]
+
+[
+"What is Artificial Intelligence?",
+"What are the types of AI?",
+"How does Machine Learning work?",
+"What are AI applications?",
+"What are the advantages of AI?",
+"What are AI limitations?"
+]
 `;
 
-  const response = await axios.post("http://localhost:11434/api/generate", {
-    model: "llama3.2",
+  const response = await axios.post(OLLAMA_URL, {
+    model: MODEL,
     prompt,
     stream: false
   });
 
   try {
-    const match = response.data.response.match(/\[[\s\S]*\]/); // guard against stray text
-    return match ? JSON.parse(match[0]) : [];
+
+    const output = response.data.response.trim();
+
+    const match = output.match(/\[[\s\S]*\]/);
+
+    if (!match) return [];
+
+    return JSON.parse(match[0]);
+
   } catch (err) {
+
+    console.log("Suggestion Error:", err.message);
+
     return [];
+
   }
+
 }
 
 module.exports = {

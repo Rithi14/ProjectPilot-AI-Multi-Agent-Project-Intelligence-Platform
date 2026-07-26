@@ -1,6 +1,9 @@
 const express = require("express");
 const { searchChunks } = require("../rag/search");
-const { askLLM, suggestQuestions } = require("../ai_service/ollamaClient");
+const {
+  askLLM,
+  suggestQuestions
+} = require("../ai_service/ollamaClient");
 
 const router = express.Router();
 
@@ -11,20 +14,23 @@ router.get("/", (req, res) => {
 router.post("/ask", async (req, res) => {
   try {
     const { question, history } = req.body;
-    // history: [{ question: "...", answer: "..." }, ...]  — sent back by the client each turn
 
-    if (!question) {
+    if (!question || question.trim() === "") {
       return res.status(400).json({
         success: false,
-        answer: "Question is required"
+        answer: "Question is required",
+        suggestions: []
       });
     }
 
-    const safeHistory = Array.isArray(history) ? history : [];
+    const safeHistory = Array.isArray(history)
+      ? history
+      : [];
 
-    const bestChunk = await searchChunks(question);
+    // Retrieve relevant chunks from PDF
+    const context = await searchChunks(question);
 
-    if (!bestChunk) {
+    if (!context || context.trim().length === 0) {
       return res.json({
         success: true,
         answer: "No relevant information found in the uploaded PDF.",
@@ -33,15 +39,29 @@ router.post("/ask", async (req, res) => {
       });
     }
 
-    const finalAnswer = await askLLM(question, bestChunk, safeHistory);
-    const suggestions = await suggestQuestions(bestChunk, question);
+    // Generate answer
+    const finalAnswer = await askLLM(
+      question,
+      context,
+      safeHistory
+    );
 
+    // Generate follow-up questions
+    const suggestions = await suggestQuestions(
+      context,
+      question
+    );
+
+    // Save conversation
     const updatedHistory = [
       ...safeHistory,
-      { question, answer: finalAnswer }
+      {
+        question,
+        answer: finalAnswer
+      }
     ];
 
-    return res.json({
+    res.json({
       success: true,
       answer: finalAnswer,
       suggestions,
@@ -49,12 +69,15 @@ router.post("/ask", async (req, res) => {
     });
 
   } catch (error) {
+
     console.error("RAG Error:", error);
-    return res.status(500).json({
+
+    res.status(500).json({
       success: false,
       answer: "RAG Failed",
       suggestions: []
     });
+
   }
 });
 
