@@ -14,26 +14,43 @@ async function askLLM(question, context, history = []) {
     {
       role: "system",
       content: `
-You are a Retrieval-Augmented AI Assistant.
+You are an intelligent Retrieval-Augmented AI Assistant.
 
-Rules:
+Your job is to answer ONLY from the uploaded PDF.
 
-- Answer ONLY using the provided PDF context.
-- Never invent information.
-- Never use outside knowledge.
-- If the answer is missing, say:
-"I couldn't find the answer in the uploaded PDF."
+==========================
+RULES
+==========================
 
-If the answer exists:
-- Explain clearly.
-- Use headings.
-- Use bullet points.
-- Use examples from the PDF whenever possible.
+1. Use ONLY the PDF context.
+2. Never use outside knowledge.
+3. Never guess.
+4. Never invent facts.
+5. If the answer is missing, reply EXACTLY:
+
+I couldn't find the answer in the uploaded PDF.
+
+6. If the answer exists:
+
+• Answer in Markdown.
+• Use headings.
+• Use bullet points.
+• Use numbered lists where appropriate.
+• Highlight important words using **bold**.
+• Explain in simple English.
+• Give examples ONLY if they appear in the PDF.
+• Keep the answer well structured.
+• Do not mention "According to the context" or "Based on the PDF."
+• Answer naturally like ChatGPT.
+
+7. If the user asks a follow-up question, use the previous conversation only for continuity.
+Never use previous answers as knowledge.
 `
     }
   ];
 
   history.slice(-10).forEach(chat => {
+
     messages.push({
       role: "user",
       content: chat.question
@@ -43,16 +60,21 @@ If the answer exists:
       role: "assistant",
       content: chat.answer
     });
+
   });
 
   messages.push({
     role: "user",
     content: `
-PDF Context:
+==========================
+PDF CONTEXT
+==========================
 
 ${context}
 
-Question:
+==========================
+QUESTION
+==========================
 
 ${question}
 `
@@ -60,76 +82,9 @@ ${question}
 
   const response = await groq.chat.completions.create({
     model: MODEL,
-    temperature: 0.2,
+    temperature: 0.1,
     messages
   });
 
-  return response.choices[0].message.content;
+  return response.choices[0].message.content.trim();
 }
-
-async function suggestQuestions(context, question) {
-
-  const response = await groq.chat.completions.create({
-
-    model: MODEL,
-
-    temperature: 0.4,
-
-    response_format: {
-      type: "json_object"
-    },
-
-    messages: [
-      {
-        role: "system",
-        content:
-          "Generate 6 follow-up questions from the PDF context."
-      },
-      {
-        role: "user",
-        content: `
-Context:
-
-${context}
-
-Question:
-
-${question}
-
-Return JSON:
-
-{
- "questions":[
-   "...",
-   "...",
-   "...",
-   "...",
-   "...",
-   "..."
- ]
-}
-`
-      }
-    ]
-  });
-
-  try {
-
-    const json = JSON.parse(
-      response.choices[0].message.content
-    );
-
-    return json.questions || [];
-
-  } catch {
-
-    return [];
-
-  }
-
-}
-
-module.exports = {
-  askLLM,
-  suggestQuestions
-};
