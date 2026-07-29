@@ -227,54 +227,7 @@ function AIChat() {
         </button>
       </div>
 
-      {suggestions.length > 0 && (
-  <div
-    style={{
-      marginTop: "15px",
-      display: "flex",
-      flexWrap: "wrap",
-      gap: "8px",
-    }}
-  >
-
-    {suggestions.map((s, i) => (
-
-      <button
-        key={i}
-        onClick={() => askAI(s)}
-        disabled={loading}
-        style={{
-          background: "#1f2937",
-          color:
-            chatMode === "normal"
-              ? "#60a5fa"
-              : "#c084fc",
-
-          border:
-            chatMode === "normal"
-              ? "1px solid #2563eb"
-              : "1px solid #9333ea",
-
-          padding: "8px 14px",
-
-          borderRadius: "20px",
-
-          cursor: loading
-            ? "not-allowed"
-            : "pointer",
-
-          fontSize: "14px",
-
-          transition: "0.2s",
-        }}
-      >
-        {s}
-      </button>
-
-    ))}
-
-  </div>
-)}
+      
 
       <div
         style={{
