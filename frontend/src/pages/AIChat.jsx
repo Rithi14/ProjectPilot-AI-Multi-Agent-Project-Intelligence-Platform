@@ -14,8 +14,10 @@ function AIChat() {
   const bottomRef = useRef(null);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  bottomRef.current?.scrollIntoView({
+    behavior: "smooth",
+  });
+}, [messages, suggestions]);
 
   const askAI = async (customPrompt) => {
   const question = (customPrompt ?? prompt).trim();
@@ -288,26 +290,110 @@ function AIChat() {
         {messages.length === 0 && <p>Start chatting with AI...</p>}
 
         {messages.map((msg, index) => (
-          <div
-            key={index}
-            style={{
-              background: msg.type === "user" ? "#2563eb" : "#1e293b",
-              padding: "15px",
-              borderRadius: "12px",
-              marginBottom: "15px",
-              maxWidth: "85%",
-              marginLeft: msg.type === "user" ? "auto" : "0",
-              whiteSpace: "pre-wrap",
-              overflowWrap: "break-word",
-            }}
-          >
-            <strong>{msg.type === "user" ? "You" : "AI"}:</strong>
-            <br />
-            <ReactMarkdown>{msg.text}</ReactMarkdown>
-          </div>
-        ))}
+  <div
+    key={index}
+    style={{
+      background: msg.type === "user" ? "#2563eb" : "#1e293b",
+      padding: "15px",
+      borderRadius: "12px",
+      marginBottom: "15px",
+      maxWidth: "85%",
+      marginLeft: msg.type === "user" ? "auto" : "0",
+      whiteSpace: "pre-wrap",
+      overflowWrap: "break-word",
+    }}
+  >
+    <strong>
+      {msg.type === "user" ? "You" : "AI"}:
+    </strong>
 
-        <div ref={bottomRef} />
+    <br />
+
+    <ReactMarkdown>
+      {msg.text}
+    </ReactMarkdown>
+  </div>
+))}
+
+
+{/* ==========================================
+    SUGGESTED QUESTIONS
+========================================== */}
+
+{suggestions.length > 0 && (
+  <div
+    style={{
+      marginTop: "25px",
+      paddingTop: "20px",
+      borderTop: "1px solid #334155",
+    }}
+  >
+
+    <div
+      style={{
+        color: "#cbd5e1",
+        fontSize: "15px",
+        fontWeight: "600",
+        marginBottom: "12px",
+      }}
+    >
+      💡 Suggested Questions
+    </div>
+
+
+    <div
+      style={{
+        display: "flex",
+        flexWrap: "wrap",
+        gap: "8px",
+      }}
+    >
+
+      {suggestions.map((s, i) => (
+
+        <button
+          key={i}
+          onClick={() => askAI(s)}
+          disabled={loading}
+          style={{
+            background: "#111827",
+            color:
+              chatMode === "normal"
+                ? "#60a5fa"
+                : "#c084fc",
+
+            border:
+              chatMode === "normal"
+                ? "1px solid #2563eb"
+                : "1px solid #9333ea",
+
+            padding: "9px 14px",
+
+            borderRadius: "20px",
+
+            cursor: loading
+              ? "not-allowed"
+              : "pointer",
+
+            fontSize: "14px",
+
+            transition: "all 0.2s ease",
+
+            opacity: loading ? 0.6 : 1,
+          }}
+        >
+          {s}
+        </button>
+
+      ))}
+
+    </div>
+
+  </div>
+)}
+
+
+<div ref={bottomRef} />
       </div>
     </div>
   );
