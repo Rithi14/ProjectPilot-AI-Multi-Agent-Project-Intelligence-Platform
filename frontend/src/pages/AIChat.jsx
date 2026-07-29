@@ -18,65 +18,113 @@ function AIChat() {
   }, [messages]);
 
   const askAI = async (customPrompt) => {
-    const question = (customPrompt ?? prompt).trim();
+  const question = (customPrompt ?? prompt).trim();
 
-    if (!question) {
-      alert("Please enter a question");
-      return;
+  if (!question) {
+    alert("Please enter a question");
+    return;
+  }
+
+  try {
+    setLoading(true);
+
+    let answer = "";
+    let newSuggestions = [];
+
+    if (chatMode === "normal") {
+
+      const res = await axios.post(`${API_URL}/ai/chat`, {
+        prompt: question,
+        history: history,
+      });
+
+      answer = res.data.response;
+
+      newSuggestions = res.data.suggestions || [];
+
+      setHistory(res.data.history || []);
+
+      setSuggestions(newSuggestions);
+
+    } else {
+
+      const pairHistory = messages
+        .filter((m) => m.type === "user" || m.type === "ai")
+        .reduce((arr, msg, index) => {
+
+          if (msg.type === "user") {
+
+            arr.push({
+              question: msg.text,
+              answer: messages[index + 1]?.text || "",
+            });
+
+          }
+
+          return arr;
+
+        }, []);
+
+
+      const res = await axios.post(`${API_URL}/rag/ask`, {
+
+        question,
+
+        history: pairHistory,
+
+      });
+
+
+      answer = res.data.answer;
+
+      setHistory(res.data.history || []);
+
+      setSuggestions(res.data.suggestions || []);
+
     }
 
-    try {
-      setLoading(true);
-      let answer = "";
 
-      if (chatMode === "normal") {
-        const res = await axios.post(`${API_URL}/ai/chat`, {
-          prompt: question,
-        });
-        answer = res.data.response;
-      } else {
-        // Build question/answer pairs from existing messages for RAG context
-        const pairHistory = messages
-          .filter((m) => m.type === "user" || m.type === "ai")
-          .reduce((arr, msg, index) => {
-            if (msg.type === "user") {
-              arr.push({
-                question: msg.text,
-                answer: messages[index + 1]?.text || "",
-              });
-            }
-            return arr;
-          }, []);
+    // Add user + AI messages
+    setMessages((prev) => [
 
-        const res = await axios.post(`${API_URL}/rag/ask`, {
-          question,
-          history: pairHistory,
-        });
+      ...prev,
 
-        answer = res.data.answer;
-        setHistory(res.data.history);
-        setSuggestions(res.data.suggestions || []);
+      {
+        type: "user",
+        text: question
+      },
+
+      {
+        type: "ai",
+        text: answer
       }
 
-      // Single place where messages get added, for both modes
-      setMessages((prev) => [
-        ...prev,
-        { type: "user", text: question },
-        { type: "ai", text: answer },
-      ]);
+    ]);
 
-      setPrompt("");
-    } catch (error) {
-      console.log(error);
-      setMessages((prev) => [
-        ...prev,
-        { type: "ai", text: "❌ Error connecting to AI" },
-      ]);
-    } finally {
-      setLoading(false);
-    }
-  };
 
+    setPrompt("");
+
+  } catch (error) {
+
+    console.log(error);
+
+    setMessages((prev) => [
+
+      ...prev,
+
+      {
+        type: "ai",
+        text: "❌ Error connecting to AI"
+      }
+
+    ]);
+
+  } finally {
+
+    setLoading(false);
+
+  }
+};
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -177,35 +225,54 @@ function AIChat() {
         </button>
       </div>
 
-      {chatMode === "rag" && suggestions.length > 0 && (
-        <div
-          style={{
-            marginTop: "15px",
-            display: "flex",
-            flexWrap: "wrap",
-            gap: "8px",
-          }}
-        >
-          {suggestions.map((s, i) => (
-            <button
-              key={i}
-              onClick={() => askAI(s)}
-              disabled={loading}
-              style={{
-                background: "#1f2937",
-                color: "#c084fc",
-                border: "1px solid #9333ea",
-                padding: "8px 14px",
-                borderRadius: "20px",
-                cursor: "pointer",
-                fontSize: "14px",
-              }}
-            >
-              {s}
-            </button>
-          ))}
-        </div>
-      )}
+      {suggestions.length > 0 && (
+  <div
+    style={{
+      marginTop: "15px",
+      display: "flex",
+      flexWrap: "wrap",
+      gap: "8px",
+    }}
+  >
+
+    {suggestions.map((s, i) => (
+
+      <button
+        key={i}
+        onClick={() => askAI(s)}
+        disabled={loading}
+        style={{
+          background: "#1f2937",
+          color:
+            chatMode === "normal"
+              ? "#60a5fa"
+              : "#c084fc",
+
+          border:
+            chatMode === "normal"
+              ? "1px solid #2563eb"
+              : "1px solid #9333ea",
+
+          padding: "8px 14px",
+
+          borderRadius: "20px",
+
+          cursor: loading
+            ? "not-allowed"
+            : "pointer",
+
+          fontSize: "14px",
+
+          transition: "0.2s",
+        }}
+      >
+        {s}
+      </button>
+
+    ))}
+
+  </div>
+)}
 
       <div
         style={{
