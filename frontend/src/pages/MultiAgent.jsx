@@ -74,80 +74,94 @@ function MultiAgent() {
 
   }
 
+  // =========================
+  // UI-ONLY: result section config (same fields, no logic change)
+  // =========================
+  const resultSections = [
+    { key: "summary", label: "Summary", icon: "📝", accent: "indigo" },
+    { key: "tasks", label: "Tasks", icon: "✅", accent: "emerald" },
+    { key: "reminders", label: "Reminders", icon: "⏰", accent: "amber" },
+    { key: "risks", label: "Risks", icon: "🚨", accent: "rose" },
+    { key: "timeline", label: "Timeline", icon: "📅", accent: "sky" },
+    { key: "decisions", label: "Decisions", icon: "🎯", accent: "violet" },
+  ]
+
+  const accentText = {
+    indigo: "text-indigo-400",
+    emerald: "text-emerald-400",
+    amber: "text-amber-400",
+    rose: "text-rose-400",
+    sky: "text-sky-400",
+    violet: "text-violet-400",
+  }
+
   return (
 
-    <div className="bg-[#111827] border border-purple-500 rounded-3xl p-8 text-white">
+    <div className="rounded-3xl border border-slate-800 bg-[#0D1120] p-8 text-slate-200">
 
-      <h1 className="text-3xl font-bold text-purple-400 mb-6">
-
-        🤝 Multi-Agent Collaboration
-
-      </h1>
-
-      <p className="text-gray-300 mb-4">
-
-        Paste meeting notes or project discussion and let multiple AI agents collaborate.
-
-      </p>
+      <div className="mb-6 flex items-center gap-3">
+        <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-500/10 text-lg ring-1 ring-indigo-500/30">
+          🤝
+        </span>
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-white">
+            Multi-agent collaboration
+          </h1>
+          <p className="mt-0.5 text-sm text-slate-500">
+            Paste meeting notes or a project discussion and let multiple AI agents collaborate
+          </p>
+        </div>
+      </div>
 
       {/* PROJECT TITLE */}
 
-      <input
+      <div className="mb-4">
+        <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-slate-500">
+          Project title
+        </label>
+        <input
 
-        type="text"
+          type="text"
 
-        value={title}
+          value={title}
 
-        onChange={(e) =>
-          setTitle(
-            e.target.value
-          )
-        }
+          onChange={(e) =>
+            setTitle(
+              e.target.value
+            )
+          }
 
-        placeholder="Project Title"
+          placeholder="e.g. Customer Portal Revamp"
 
-        className="
-          w-full
-          bg-[#1F2937]
-          border
-          border-gray-600
-          rounded-xl
-          p-4
-          text-white
-          mb-4
-          outline-none
-        "
+          className="w-full rounded-lg border border-slate-700 bg-[#111528] px-3.5 py-2.5 text-sm text-slate-100 placeholder-slate-600 outline-none transition focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
 
-      />
+        />
+      </div>
 
       {/* NOTES */}
 
-      <textarea
+      <div>
+        <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-slate-500">
+          Meeting notes
+        </label>
+        <textarea
 
-        rows="10"
+          rows="10"
 
-        value={text}
+          value={text}
 
-        onChange={(e) =>
-          setText(
-            e.target.value
-          )
-        }
+          onChange={(e) =>
+            setText(
+              e.target.value
+            )
+          }
 
-        placeholder="Paste meeting notes here..."
+          placeholder="Paste meeting notes here…"
 
-        className="
-          w-full
-          bg-[#1F2937]
-          border
-          border-gray-600
-          rounded-xl
-          p-4
-          text-white
-          outline-none
-        "
+          className="w-full resize-none rounded-lg border border-slate-700 bg-[#111528] px-3.5 py-3 text-sm text-slate-100 placeholder-slate-600 outline-none transition focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
 
-      />
+        />
+      </div>
 
       <button
 
@@ -155,25 +169,25 @@ function MultiAgent() {
 
         disabled={loading}
 
-        className="
-          mt-5
-          bg-purple-600
-          hover:bg-purple-700
-          px-6
-          py-3
-          rounded-xl
-          font-semibold
-        "
+        className="mt-5 flex items-center gap-2 rounded-xl bg-indigo-600 px-6 py-3 text-sm font-medium text-white transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400"
 
       >
 
         {
 
+          loading && (
+            <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+          )
+
+        }
+
+        {
+
           loading
 
-            ? "Running Agents..."
+            ? "Running agents…"
 
-            : "🚀 Run Agents"
+            : "🚀 Run agents"
 
         }
 
@@ -183,108 +197,25 @@ function MultiAgent() {
 
         result && (
 
-          <div className="mt-8 space-y-6">
+          <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
 
-            {/* SUMMARY */}
+            {
+              resultSections.map((section) => (
+                <div
+                  key={section.key}
+                  className="rounded-xl border border-slate-800 bg-[#111528] p-5"
+                >
+                  <h2 className={`mb-2 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide ${accentText[section.accent]}`}>
+                    <span>{section.icon}</span>
+                    <span>{section.label}</span>
+                  </h2>
 
-            <div className="bg-[#1F2937] p-5 rounded-xl">
-
-              <h2 className="text-xl font-bold text-purple-400 mb-2">
-
-                📝 Summary
-
-              </h2>
-
-              <p className="text-gray-200 whitespace-pre-line">
-
-                {result.summary}
-
-              </p>
-
-            </div>
-
-            {/* TASKS */}
-
-            <div className="bg-[#1F2937] p-5 rounded-xl">
-
-              <h2 className="text-xl font-bold text-green-400 mb-2">
-
-                ✅ Tasks
-
-              </h2>
-
-              <p className="text-gray-200 whitespace-pre-line">
-
-                {result.tasks}
-
-              </p>
-
-            </div>
-
-            {/* REMINDERS */}
-
-            <div className="bg-[#1F2937] p-5 rounded-xl">
-
-              <h2 className="text-xl font-bold text-yellow-400 mb-2">
-
-                ⏰ Reminders
-
-              </h2>
-
-              <p className="text-gray-200 whitespace-pre-line">
-
-                {result.reminders}
-
-              </p>
-
-            </div>
-            <div className="bg-[#1F2937] p-5 rounded-xl">
-
-  <h2 className="text-xl font-bold text-red-400 mb-2">
-
-    🚨 Risks
-
-  </h2>
-
-  <p>
-
-    {result.risks}
-
-  </p>
-
-</div>
-
-<div className="bg-[#1F2937] p-5 rounded-xl">
-
-  <h2 className="text-xl font-bold text-blue-400 mb-2">
-
-    📅 Timeline
-
-  </h2>
-
-  <p>
-
-    {result.timeline}
-
-  </p>
-
-</div>
-
-<div className="bg-[#1F2937] p-5 rounded-xl">
-
-  <h2 className="text-xl font-bold text-purple-400 mb-2">
-
-    🎯 Decisions
-
-  </h2>
-
-  <p>
-
-    {result.decisions}
-
-  </p>
-
-</div>
+                  <p className="whitespace-pre-line text-sm leading-relaxed text-slate-300">
+                    {result[section.key]}
+                  </p>
+                </div>
+              ))
+            }
 
           </div>
 

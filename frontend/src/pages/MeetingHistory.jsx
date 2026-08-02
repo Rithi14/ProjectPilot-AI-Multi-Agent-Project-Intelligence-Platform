@@ -17,6 +17,18 @@ function MeetingHistory() {
   const [answer, setAnswer] =
     useState("")
 
+  // =========================
+  // UI-ONLY: tracks which meeting rows are expanded (View Details)
+  // =========================
+  const [expandedIds, setExpandedIds] = useState({})
+
+  const toggleDetails = (id) => {
+    setExpandedIds((prev) => ({
+      ...prev,
+      [id]: !prev[id]
+    }))
+  }
+
   useEffect(() => {
 
     fetchMeetings()
@@ -212,78 +224,100 @@ function MeetingHistory() {
 
   return (
 
-    <div className="w-full mt-10">
+    <div className="mt-10 w-full">
 
-      <div className="bg-slate-900 border border-purple-500 rounded-3xl p-8">
+      <div className="rounded-3xl border border-slate-800 bg-[#0D1120] p-8">
 
-        <h2 className="text-4xl font-bold text-purple-400 mb-8">
-
-          📋 Meeting History
-
-        </h2>
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-semibold tracking-tight text-white">
+              Meeting history
+            </h2>
+            <p className="mt-1 text-sm text-slate-500">
+              {loading ? "Loading meetings…" : `${meetings.length} recorded meeting${meetings.length === 1 ? "" : "s"}`}
+            </p>
+          </div>
+          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-500/10 text-lg ring-1 ring-indigo-500/30">
+            📋
+          </span>
+        </div>
 
         {
 
           loading ? (
 
-            <div className="text-white">
+            <div className="rounded-xl border border-slate-800 bg-[#111528] px-5 py-8 text-center text-sm text-slate-400">
 
-              Loading Meetings...
+              Loading meetings…
 
             </div>
 
           ) : meetings.length === 0 ? (
 
-            <div className="text-gray-400">
+            <div className="rounded-xl border border-dashed border-slate-800 px-5 py-10 text-center text-sm text-slate-500">
 
-              No Meeting Records Found
+              No meeting records found
 
             </div>
 
           ) : (
 
-            meetings.map((meeting) => (
+            meetings.map((meeting) => {
+
+              const isExpanded = !!expandedIds[meeting.id]
+
+              return (
 
               <div
 
                 key={meeting.id}
 
-                className="
-                  bg-slate-800
-                  border
-                  border-slate-700
-                  rounded-2xl
-                  p-6
-                  mb-6
-                "
+                className="mb-4 rounded-2xl border border-slate-800 bg-[#111528] p-6 transition hover:border-slate-700"
 
               >
 
-                <div className="flex justify-between items-start">
+                <div className="flex flex-wrap items-center justify-between gap-3">
 
-                  <div>
+                  <div className="flex items-center gap-3">
 
-                    <h3 className="text-2xl font-bold text-purple-300">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-800 text-sm font-medium text-slate-400">
+                      🗓️
+                    </span>
 
-                      {meeting.title}
-
-                    </h3>
-
-                    <p className="text-gray-400 text-sm mt-1">
-
-                      {
-                        meeting.created_at
-                          ? new Date(
-                              meeting.created_at
-                            ).toLocaleString()
-                          : "No Date"
-                      }
-
-                    </p>
+                    <div>
+                      <p className="text-sm font-medium text-slate-200">
+                        {
+                          meeting.created_at
+                            ? new Date(
+                                meeting.created_at
+                              ).toLocaleString()
+                            : "No date"
+                        }
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        {isExpanded ? meeting.title : "Meeting record"}
+                      </p>
+                    </div>
 
                   </div>
 
-                  <div className="flex gap-3">
+                  <div className="flex flex-wrap gap-2">
+
+                    <button
+
+                      onClick={() =>
+                        toggleDetails(
+                          meeting.id
+                        )
+                      }
+
+                      className="rounded-lg border border-indigo-500/40 px-3.5 py-2 text-xs font-medium text-indigo-300 transition hover:bg-indigo-500/10"
+
+                    >
+
+                      {isExpanded ? "Hide details" : "View details"}
+
+                    </button>
 
                     <button
 
@@ -293,14 +327,7 @@ function MeetingHistory() {
                         )
                       }
 
-                      className="
-                        bg-purple-600
-                        hover:bg-purple-700
-                        px-4
-                        py-2
-                        rounded-lg
-                        text-white
-                      "
+                      className="rounded-lg border border-slate-700 px-3.5 py-2 text-xs font-medium text-slate-300 transition hover:bg-slate-800"
 
                     >
 
@@ -316,14 +343,7 @@ function MeetingHistory() {
                         )
                       }
 
-                      className="
-                        bg-blue-600
-                        hover:bg-blue-700
-                        px-4
-                        py-2
-                        rounded-lg
-                        text-white
-                      "
+                      className="rounded-lg bg-indigo-600 px-3.5 py-2 text-xs font-medium text-white transition hover:bg-indigo-500"
 
                     >
 
@@ -339,14 +359,7 @@ function MeetingHistory() {
                         )
                       }
 
-                      className="
-                        bg-red-600
-                        hover:bg-red-700
-                        px-4
-                        py-2
-                        rounded-lg
-                        text-white
-                      "
+                      className="rounded-lg border border-rose-500/30 px-3.5 py-2 text-xs font-medium text-rose-400 transition hover:bg-rose-500/10"
 
                     >
 
@@ -358,82 +371,94 @@ function MeetingHistory() {
 
                 </div>
 
-                <div className="mt-5">
-
-                  <h4 className="text-pink-400 font-bold text-lg mb-2">
-
-                    📄 Summary
-
-                  </h4>
-
-                  <p className="text-gray-300 whitespace-pre-line">
-
-                    {
-                      meeting.summary ||
-                      "No Summary"
-                    }
-
-                  </p>
-
-                </div>
-
                 {
 
-                  meeting.tasks && (
+                  isExpanded && (
 
-                    <div className="mt-5">
+                    <div className="mt-6 border-t border-slate-800 pt-6">
 
-                      <h4 className="text-green-400 font-bold text-lg mb-2">
+                      <h3 className="text-lg font-semibold tracking-tight text-white">
 
-                        ✅ Tasks
+                        {meeting.title}
 
-                      </h4>
+                      </h3>
 
-                      <p className="text-gray-300 whitespace-pre-line">
+                      <div className="mt-5">
 
-                        {meeting.tasks}
+                        <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-pink-400">
 
-                      </p>
+                          📄 Summary
 
-                    </div>
+                        </h4>
 
-                  )
+                        <p className="whitespace-pre-line text-sm leading-relaxed text-slate-300">
 
-                }
+                          {
+                            meeting.summary ||
+                            "No summary"
+                          }
 
-                {
+                        </p>
 
-                  meeting.reminders && (
+                      </div>
 
-                    <div className="mt-5">
+                      {
 
-                      <h4 className="text-yellow-400 font-bold text-lg mb-2">
+                        meeting.tasks && (
 
-                        ⏰ Reminders
+                          <div className="mt-5">
 
-                      </h4>
+                            <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-emerald-400">
 
-                      <p className="text-gray-300 whitespace-pre-line">
+                              ✅ Tasks
 
-                        {meeting.reminders}
+                            </h4>
 
-                      </p>
+                            <p className="whitespace-pre-line text-sm leading-relaxed text-slate-300">
 
-                    </div>
+                              {meeting.tasks}
 
-                  )
+                            </p>
 
-                }
-                {
+                          </div>
+
+                        )
+
+                      }
+
+                      {
+
+                        meeting.reminders && (
+
+                          <div className="mt-5">
+
+                            <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-400">
+
+                              ⏰ Reminders
+
+                            </h4>
+
+                            <p className="whitespace-pre-line text-sm leading-relaxed text-slate-300">
+
+                              {meeting.reminders}
+
+                            </p>
+
+                          </div>
+
+                        )
+
+                      }
+                      {
   meeting.risks && (
 
     <div className="mt-5">
 
-      <h4 className="text-red-400 font-bold text-lg mb-2">
+      <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-rose-400">
         🚨 Risks
       </h4>
 
-      <p className="text-gray-300 whitespace-pre-line">
+      <p className="whitespace-pre-line text-sm leading-relaxed text-slate-300">
         {meeting.risks}
       </p>
 
@@ -446,11 +471,11 @@ function MeetingHistory() {
 
     <div className="mt-5">
 
-      <h4 className="text-blue-400 font-bold text-lg mb-2">
+      <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-sky-400">
         📅 Timeline
       </h4>
 
-      <p className="text-gray-300 whitespace-pre-line">
+      <p className="whitespace-pre-line text-sm leading-relaxed text-slate-300">
         {meeting.timeline}
       </p>
 
@@ -463,11 +488,11 @@ function MeetingHistory() {
 
     <div className="mt-5">
 
-      <h4 className="text-purple-400 font-bold text-lg mb-2">
+      <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-violet-400">
         🎯 Decisions
       </h4>
 
-      <p className="text-gray-300 whitespace-pre-line">
+      <p className="whitespace-pre-line text-sm leading-relaxed text-slate-300">
         {meeting.decisions}
       </p>
 
@@ -476,9 +501,17 @@ function MeetingHistory() {
   )
 }
 
+                    </div>
+
+                  )
+
+                }
+
               </div>
 
-            ))
+              )
+
+            })
 
           )
 
@@ -490,17 +523,20 @@ function MeetingHistory() {
 
         selectedMeeting && (
 
-          <div className="fixed inset-0 bg-black/70 flex justify-center items-center z-50">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
 
-            <div className="bg-slate-900 border border-purple-500 w-[800px] rounded-3xl p-8">
+            <div className="flex max-h-[85vh] w-full max-w-2xl flex-col rounded-2xl border border-slate-800 bg-[#0D1120] p-7 shadow-2xl shadow-black/40">
 
-              <h2 className="text-3xl font-bold text-purple-400 mb-4">
+              <div className="mb-1 flex items-center gap-2.5">
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-500/10 text-sm ring-1 ring-indigo-500/30">🤖</span>
+                <h2 className="text-lg font-semibold tracking-tight text-white">
 
-                🤖 AI Project Assistant
+                  AI project assistant
 
-              </h2>
+                </h2>
+              </div>
 
-              <h3 className="text-xl text-white mb-4">
+              <h3 className="mb-4 text-sm text-slate-500">
 
                 {selectedMeeting.title}
 
@@ -518,34 +554,19 @@ function MeetingHistory() {
                   )
                 }
 
-                placeholder="Ask anything about this project..."
+                placeholder="Ask anything about this project…"
 
-                className="
-                  w-full
-                  bg-slate-800
-                  border
-                  border-slate-700
-                  rounded-xl
-                  p-4
-                  text-white
-                "
+                className="w-full shrink-0 resize-none rounded-lg border border-slate-700 bg-[#111528] p-4 text-sm text-slate-100 placeholder-slate-600 outline-none transition focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
 
               />
 
-              <div className="flex gap-3 mt-4">
+              <div className="mt-4 flex shrink-0 gap-3">
 
                 <button
 
                   onClick={askProjectAI}
 
-                  className="
-                    bg-purple-600
-                    hover:bg-purple-700
-                    px-5
-                    py-3
-                    rounded-xl
-                    text-white
-                  "
+                  className="rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-indigo-500"
 
                 >
 
@@ -563,14 +584,7 @@ function MeetingHistory() {
 
                   }}
 
-                  className="
-                    bg-red-600
-                    hover:bg-red-700
-                    px-5
-                    py-3
-                    rounded-xl
-                    text-white
-                  "
+                  className="rounded-lg border border-slate-700 px-5 py-2.5 text-sm font-medium text-slate-300 transition hover:bg-slate-800"
 
                 >
 
@@ -584,19 +598,23 @@ function MeetingHistory() {
 
                 answer && (
 
-                  <div className="mt-6 bg-slate-800 rounded-xl p-5">
+                  <div className="mt-6 flex min-h-0 flex-1 flex-col rounded-xl border border-slate-800 bg-[#111528] p-5">
 
-                    <h4 className="text-green-400 font-bold mb-3">
+                    <h4 className="mb-3 shrink-0 text-xs font-semibold uppercase tracking-wide text-emerald-400">
 
-                      AI Response
+                      AI response
 
                     </h4>
 
-                    <p className="text-gray-300 whitespace-pre-line">
+                    <div className="min-h-0 flex-1 overflow-y-auto pr-2">
 
-                      {answer}
+                      <p className="whitespace-pre-line text-sm leading-relaxed text-slate-300">
 
-                    </p>
+                        {answer}
+
+                      </p>
+
+                    </div>
 
                   </div>
 

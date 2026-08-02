@@ -133,37 +133,65 @@ function AgentDashboard() {
       task.project_name === selectedProject
   )
 
+  // =========================
+  // UI-ONLY: display helpers (no logic change)
+  // =========================
+
+  const statusBadge = {
+    Pending: "bg-amber-500/10 text-amber-400 ring-1 ring-amber-500/30",
+    "In Progress": "bg-indigo-500/10 text-indigo-400 ring-1 ring-indigo-500/30",
+    Completed: "bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/30",
+  }
+
+  const priorityBadge = {
+    Low: "bg-slate-500/10 text-slate-300 ring-1 ring-slate-500/30",
+    Medium: "bg-amber-500/10 text-amber-400 ring-1 ring-amber-500/30",
+    High: "bg-rose-500/10 text-rose-400 ring-1 ring-rose-500/30",
+  }
+
+  const statusActions = [
+    { key: "Pending", label: "Pending" },
+    { key: "In Progress", label: "In progress" },
+    { key: "Completed", label: "Complete" },
+  ]
+
   return (
 
-    <div className="min-h-screen bg-[#050816] text-white p-8">
+    <div className="min-h-screen bg-[#0A0E1A] p-8 text-slate-200">
 
       {/* ========================= */}
       {/* HEADER */}
       {/* ========================= */}
 
-      <div className="flex justify-between items-center mb-10">
+      <div className="mb-10 flex items-center justify-between border-b border-slate-800 pb-8">
 
-        <div>
+        <div className="flex items-center gap-4">
 
-          <h1 className="text-5xl font-bold text-cyan-400">
-            Agent Dashboard
-          </h1>
+          <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-cyan-500/10 text-lg font-semibold text-cyan-400 ring-1 ring-cyan-500/30">
+            {loggedInUser ? loggedInUser.charAt(0).toUpperCase() : "A"}
+          </span>
 
-          <p className="text-gray-400 mt-3 text-lg">
-            Welcome {user?.name}
-          </p>
+          <div>
 
-          <p className="text-gray-500 mt-1">
-            Role : {user?.role_type}
-          </p>
+            <h1 className="text-2xl font-semibold tracking-tight text-white">
+              Agent dashboard
+            </h1>
+
+            <p className="mt-1 text-sm text-slate-400">
+              Welcome back, {user?.name}
+              <span className="mx-2 text-slate-700">·</span>
+              <span className="text-slate-500">{user?.role_type}</span>
+            </p>
+
+          </div>
 
         </div>
 
         <button
           onClick={logout}
-          className="bg-red-500 hover:bg-red-600 px-6 py-3 rounded-xl"
+          className="rounded-lg border border-rose-500/30 px-5 py-2.5 text-sm font-medium text-rose-400 transition hover:bg-rose-500/10"
         >
-          Logout
+          Log out
         </button>
 
       </div>
@@ -172,23 +200,23 @@ function AgentDashboard() {
       {/* STATS */}
       {/* ========================= */}
 
-      <div className="grid grid-cols-4 gap-6 mb-10">
+      <div className="mb-10 grid grid-cols-2 gap-5 lg:grid-cols-4">
 
-        <div className="bg-[#111827] p-6 rounded-2xl">
+        <div className="rounded-2xl border border-slate-800 bg-[#111528] p-6">
 
-          <h2 className="text-5xl font-bold text-cyan-400">
+          <h2 className="text-3xl font-semibold text-cyan-400">
             {myTasks.length}
           </h2>
 
-          <p className="text-gray-400 mt-3">
-            My Tasks
+          <p className="mt-2 text-xs font-medium uppercase tracking-wide text-slate-500">
+            My tasks
           </p>
 
         </div>
 
-        <div className="bg-[#111827] p-6 rounded-2xl">
+        <div className="rounded-2xl border border-slate-800 bg-[#111528] p-6">
 
-          <h2 className="text-5xl font-bold text-yellow-400">
+          <h2 className="text-3xl font-semibold text-amber-400">
 
             {
               myTasks.filter(
@@ -199,15 +227,15 @@ function AgentDashboard() {
 
           </h2>
 
-          <p className="text-gray-400 mt-3">
+          <p className="mt-2 text-xs font-medium uppercase tracking-wide text-slate-500">
             Pending
           </p>
 
         </div>
 
-        <div className="bg-[#111827] p-6 rounded-2xl">
+        <div className="rounded-2xl border border-slate-800 bg-[#111528] p-6">
 
-          <h2 className="text-5xl font-bold text-cyan-400">
+          <h2 className="text-3xl font-semibold text-indigo-400">
 
             {
               myTasks.filter(
@@ -218,15 +246,15 @@ function AgentDashboard() {
 
           </h2>
 
-          <p className="text-gray-400 mt-3">
-            In Progress
+          <p className="mt-2 text-xs font-medium uppercase tracking-wide text-slate-500">
+            In progress
           </p>
 
         </div>
 
-        <div className="bg-[#111827] p-6 rounded-2xl">
+        <div className="rounded-2xl border border-slate-800 bg-[#111528] p-6">
 
-          <h2 className="text-5xl font-bold text-green-400">
+          <h2 className="text-3xl font-semibold text-emerald-400">
 
             {
               myTasks.filter(
@@ -237,7 +265,7 @@ function AgentDashboard() {
 
           </h2>
 
-          <p className="text-gray-400 mt-3">
+          <p className="mt-2 text-xs font-medium uppercase tracking-wide text-slate-500">
             Completed
           </p>
 
@@ -251,19 +279,27 @@ function AgentDashboard() {
 
       <div>
 
-        <h2 className="text-4xl font-bold mb-10">
-          Project Workspace
+        <h2 className="mb-6 text-xs font-semibold uppercase tracking-wider text-slate-500">
+          Project workspace
         </h2>
 
         {
           loading && (
-            <p className="text-cyan-400">
-              Loading Projects...
+            <p className="mb-6 text-sm text-cyan-400">
+              Loading projects…
             </p>
           )
         }
 
-        <div className="grid grid-cols-2 gap-8">
+        {
+          !loading && uniqueProjects.length === 0 && (
+            <div className="rounded-xl border border-dashed border-slate-800 px-6 py-10 text-center text-sm text-slate-500">
+              No projects assigned to you yet
+            </div>
+          )
+        }
+
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
 
           {
 
@@ -271,24 +307,24 @@ function AgentDashboard() {
 
               <div
                 key={index}
-                className="bg-[#111827] border border-cyan-500 rounded-3xl p-10"
+                className="rounded-2xl border border-slate-800 bg-[#111528] p-7 transition hover:border-cyan-500/40"
               >
 
-                <h2 className="text-5xl font-bold text-cyan-400">
+                <h2 className="text-xl font-semibold tracking-tight text-white">
                   {project}
                 </h2>
 
-                <p className="text-gray-400 mt-6 text-2xl">
-                  View All Agent Progress & Tasks
+                <p className="mt-2 text-sm text-slate-500">
+                  View team progress and manage your tasks
                 </p>
 
                 <button
                   onClick={() =>
                     setSelectedProject(project)
                   }
-                  className="mt-10 bg-cyan-500 hover:bg-cyan-600 px-10 py-4 rounded-2xl text-2xl font-semibold"
+                  className="mt-6 rounded-lg bg-cyan-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-cyan-500"
                 >
-                  View Details
+                  View details
                 </button>
 
               </div>
@@ -309,19 +345,23 @@ function AgentDashboard() {
 
         selectedProject && (
 
-        <div className="fixed inset-0 bg-black/70 z-50 overflow-y-auto p-6">
-          <div className="bg-[#0F172A] border border-cyan-500 rounded-3xl p-10 w-full max-w-7xl mx-auto my-10">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 p-6 backdrop-blur-sm">
+          <div className="mx-auto my-10 w-full max-w-6xl rounded-3xl border border-slate-800 bg-[#0D1120] p-9 shadow-2xl shadow-black/40">
 
-              <div className="flex justify-between items-start">
+              <div className="flex items-start justify-between border-b border-slate-800 pb-6">
 
                 <div>
 
-                  <h1 className="text-6xl font-bold text-cyan-400">
+                  <p className="mb-1 text-xs font-medium uppercase tracking-wider text-cyan-400">
+                    Project
+                  </p>
+
+                  <h1 className="text-3xl font-semibold tracking-tight text-white">
                     {selectedProject}
                   </h1>
 
-                  <p className="text-gray-400 mt-4 text-2xl">
-                    Team Progress & Tasks
+                  <p className="mt-2 text-sm text-slate-500">
+                    Team progress and task ownership
                   </p>
 
                 </div>
@@ -330,7 +370,7 @@ function AgentDashboard() {
                   onClick={() =>
                     setSelectedProject(null)
                   }
-                  className="bg-red-500 hover:bg-red-600 px-8 py-4 rounded-2xl text-xl"
+                  className="rounded-lg border border-slate-700 px-4 py-2 text-sm font-medium text-slate-300 transition hover:bg-slate-800"
                 >
                   Close
                 </button>
@@ -341,25 +381,25 @@ function AgentDashboard() {
               {/* PROJECT STATS */}
               {/* ========================= */}
 
-              <div className="grid grid-cols-4 gap-6 mt-10">
+              <div className="mt-7 grid grid-cols-2 gap-5 lg:grid-cols-4">
 
-                <div className="bg-[#1E293B] p-8 rounded-2xl">
+                <div className="rounded-xl border border-slate-800 bg-[#111528] p-6">
 
-                  <h2 className="text-5xl font-bold text-cyan-400">
+                  <h2 className="text-2xl font-semibold text-cyan-400">
 
                     {projectTasks.length}
 
                   </h2>
 
-                  <p className="text-gray-400 mt-4 text-xl">
-                    Total Tasks
+                  <p className="mt-1.5 text-xs font-medium uppercase tracking-wide text-slate-500">
+                    Total tasks
                   </p>
 
                 </div>
 
-                <div className="bg-[#1E293B] p-8 rounded-2xl">
+                <div className="rounded-xl border border-slate-800 bg-[#111528] p-6">
 
-                  <h2 className="text-5xl font-bold text-yellow-400">
+                  <h2 className="text-2xl font-semibold text-amber-400">
 
                     {
                       projectTasks.filter(
@@ -370,15 +410,15 @@ function AgentDashboard() {
 
                   </h2>
 
-                  <p className="text-gray-400 mt-4 text-xl">
+                  <p className="mt-1.5 text-xs font-medium uppercase tracking-wide text-slate-500">
                     Pending
                   </p>
 
                 </div>
 
-                <div className="bg-[#1E293B] p-8 rounded-2xl">
+                <div className="rounded-xl border border-slate-800 bg-[#111528] p-6">
 
-                  <h2 className="text-5xl font-bold text-cyan-400">
+                  <h2 className="text-2xl font-semibold text-indigo-400">
 
                     {
                       projectTasks.filter(
@@ -389,15 +429,15 @@ function AgentDashboard() {
 
                   </h2>
 
-                  <p className="text-gray-400 mt-4 text-xl">
-                    In Progress
+                  <p className="mt-1.5 text-xs font-medium uppercase tracking-wide text-slate-500">
+                    In progress
                   </p>
 
                 </div>
 
-                <div className="bg-[#1E293B] p-8 rounded-2xl">
+                <div className="rounded-xl border border-slate-800 bg-[#111528] p-6">
 
-                  <h2 className="text-5xl font-bold text-green-400">
+                  <h2 className="text-2xl font-semibold text-emerald-400">
 
                     {
                       projectTasks.filter(
@@ -408,7 +448,7 @@ function AgentDashboard() {
 
                   </h2>
 
-                  <p className="text-gray-400 mt-4 text-xl">
+                  <p className="mt-1.5 text-xs font-medium uppercase tracking-wide text-slate-500">
                     Completed
                   </p>
 
@@ -420,7 +460,7 @@ function AgentDashboard() {
               {/* ALL AGENT TASKS */}
               {/* ========================= */}
 
-              <div className="mt-10 space-y-6">
+              <div className="mt-8 space-y-4">
 
                 {
 
@@ -428,26 +468,26 @@ function AgentDashboard() {
 
                     <div
                       key={task.id}
-                      className="bg-[#1E293B] border border-cyan-500 p-8 rounded-3xl"
+                      className="rounded-2xl border border-slate-800 bg-[#111528] p-7"
                     >
 
-                      <div className="flex justify-between items-start">
+                      <div className="flex flex-wrap items-start justify-between gap-6">
 
-                        <div>
+                        <div className="min-w-[240px] flex-1">
 
-                          <h2 className="text-4xl font-bold text-cyan-400">
+                          <h2 className="text-lg font-semibold tracking-tight text-white">
                             {task.task_name}
                           </h2>
 
-                          <div className="flex gap-16 mt-8">
+                          <div className="mt-5 flex flex-wrap gap-8">
 
                             <div>
 
-                              <span className="text-gray-500 text-lg">
-                                Assigned To
+                              <span className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                                Assigned to
                               </span>
 
-                              <p className="text-white text-2xl mt-2">
+                              <p className="mt-1.5 text-sm font-medium text-slate-200">
                                 {task.assigned_to}
                               </p>
 
@@ -455,24 +495,28 @@ function AgentDashboard() {
 
                             <div>
 
-                              <span className="text-gray-500 text-lg">
+                              <span className="text-xs font-medium uppercase tracking-wide text-slate-500">
                                 Priority
                               </span>
 
-                              <p className="text-yellow-400 text-2xl mt-2">
-                                {task.priority}
+                              <p className="mt-1.5">
+                                <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${priorityBadge[task.priority] || priorityBadge.Medium}`}>
+                                  {task.priority}
+                                </span>
                               </p>
 
                             </div>
 
                             <div>
 
-                              <span className="text-gray-500 text-lg">
+                              <span className="text-xs font-medium uppercase tracking-wide text-slate-500">
                                 Status
                               </span>
 
-                              <p className="text-green-400 text-2xl mt-2">
-                                {task.status}
+                              <p className="mt-1.5">
+                                <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${statusBadge[task.status] || statusBadge.Pending}`}>
+                                  {task.status}
+                                </span>
                               </p>
 
                             </div>
@@ -489,52 +533,37 @@ function AgentDashboard() {
 
                           task.assigned_to === loggedInUser ? (
 
-                            <div className="flex flex-col gap-4">
+                            <div className="flex gap-2">
 
-                              <button
-                                onClick={() =>
-                                  updateTaskStatus(
-                                    task.id,
-                                    "Pending"
-                                  )
-                                }
-                                className="bg-yellow-400 hover:bg-yellow-500 px-8 py-4 rounded-2xl text-xl font-semibold"
-                              >
-                                Pending
-                              </button>
-
-                              <button
-                                onClick={() =>
-                                  updateTaskStatus(
-                                    task.id,
-                                    "In Progress"
-                                  )
-                                }
-                                className="bg-cyan-500 hover:bg-cyan-600 px-8 py-4 rounded-2xl text-xl font-semibold"
-                              >
-                                In Progress
-                              </button>
-
-                              <button
-                                onClick={() =>
-                                  updateTaskStatus(
-                                    task.id,
-                                    "Completed"
-                                  )
-                                }
-                                className="bg-green-500 hover:bg-green-600 px-8 py-4 rounded-2xl text-xl font-semibold"
-                              >
-                                Complete
-                              </button>
+                              {
+                                statusActions.map((action) => (
+                                  <button
+                                    key={action.key}
+                                    onClick={() =>
+                                      updateTaskStatus(
+                                        task.id,
+                                        action.key
+                                      )
+                                    }
+                                    className={`rounded-lg px-4 py-2 text-xs font-medium transition ${
+                                      task.status === action.key
+                                        ? statusBadge[action.key] || statusBadge.Pending
+                                        : "border border-slate-700 text-slate-400 hover:bg-slate-800"
+                                    }`}
+                                  >
+                                    {action.label}
+                                  </button>
+                                ))
+                              }
 
                             </div>
 
                           ) : (
 
-                            <div className="bg-[#0F172A] px-8 py-6 rounded-2xl border border-gray-700">
+                            <div className="rounded-lg border border-slate-800 bg-[#0D1120] px-4 py-2.5">
 
-                              <p className="text-gray-400 text-xl">
-                                View Only
+                              <p className="text-xs font-medium text-slate-500">
+                                View only
                               </p>
 
                             </div>

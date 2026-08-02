@@ -143,19 +143,19 @@ Overall Progress : ${score}%
     {
       name: "Projects",
       value: stats.projects,
-      color: "#A855F7"
+      color: "#6366F1"
     },
 
     {
       name: "Tasks",
       value: stats.tasks,
-      color: "#4ADE80"
+      color: "#34D399"
     },
 
     {
       name: "Meetings",
       value: stats.meetings,
-      color: "#FACC15"
+      color: "#FBBF24"
     }
 
   ]
@@ -265,20 +265,44 @@ Overall Progress : ${score}%
 
 }
 
+  // =========================
+  // UI-ONLY: summary cards + activity feed config (display only)
+  // =========================
+  const summaryCards = [
+    { label: "Projects", icon: "📁", value: stats.projects, accent: "text-indigo-400" },
+    { label: "Tasks", icon: "✅", value: stats.tasks, accent: "text-emerald-400" },
+    { label: "Meetings", icon: "🗓️", value: stats.meetings, accent: "text-amber-400" },
+    { label: "Completion", icon: "🎯", value: `${completionRate}%`, accent: "text-cyan-400" },
+  ]
+
+  const activityFeed = [
+    { label: "New meeting added", dot: "bg-emerald-500" },
+    { label: "AI summary generated", dot: "bg-emerald-500" },
+    { label: "Reminder created", dot: "bg-amber-500" },
+    { label: "Risk detected", dot: "bg-rose-500" },
+  ]
+
+  const healthStatus =
+    healthScore > 80
+      ? { label: "Healthy", dot: "bg-emerald-500", text: "text-emerald-400" }
+      : healthScore > 50
+      ? { label: "Moderate", dot: "bg-amber-500", text: "text-amber-400" }
+      : { label: "Critical", dot: "bg-rose-500", text: "text-rose-400" }
+
   return (
 
-    <div className="w-full mt-10">
+    <div className="mt-10 w-full text-slate-200">
 
-     <div className="flex justify-between items-center mb-8">
+     <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
 
   <div>
 
-    <h1 className="text-5xl font-bold text-purple-400">
-      📊 AI Project Performance Dashboard
+    <h1 className="text-2xl font-semibold tracking-tight text-white">
+      AI project performance
     </h1>
 
-    <p className="text-gray-400 mt-2">
-      Real-Time Insights for Projects, Tasks and Meetings
+    <p className="mt-1 text-sm text-slate-500">
+      Real-time insights for projects, tasks and meetings
     </p>
 
   </div>
@@ -289,19 +313,11 @@ Overall Progress : ${score}%
 
       onClick={downloadReport}
 
-      className="
-        bg-purple-600
-        hover:bg-purple-700
-        px-6
-        py-3
-        rounded-xl
-        font-semibold
-        text-white
-      "
+      className="rounded-xl border border-slate-700 bg-[#111528] px-5 py-2.5 text-sm font-medium text-slate-300 transition hover:bg-slate-800"
 
     >
 
-      📄 Download Report
+      📄 Download report
 
     </button>
 
@@ -309,113 +325,76 @@ Overall Progress : ${score}%
 
       onClick={generateExecutiveReport}
 
-      className="
-        bg-green-600
-        hover:bg-green-700
-        px-6
-        py-3
-        rounded-xl
-        font-semibold
-        text-white
-      "
+      className="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-indigo-500"
 
     >
 
-      📑 Executive Report
+      📑 Executive report
 
     </button>
 
   </div>
 
 </div>
-      <div className="grid grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 gap-5 lg:grid-cols-4">
 
-        <div className="bg-slate-800 rounded-3xl p-8">
+        {
+          summaryCards.map((card) => (
+            <div key={card.label} className="rounded-2xl border border-slate-800 bg-[#111528] p-6">
 
-          <h3 className="text-gray-400">
-            📁 Projects
-          </h3>
+              <h3 className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-slate-500">
+                <span>{card.icon}</span>
+                <span>{card.label}</span>
+              </h3>
 
-          <p className="text-5xl font-bold text-purple-400 mt-4">
+              <p className={`mt-4 text-3xl font-semibold ${card.accent}`}>
 
-            {stats.projects}
+                {card.value}
 
-          </p>
+              </p>
 
-        </div>
-
-        <div className="bg-slate-800 rounded-3xl p-8">
-
-          <h3 className="text-gray-400">
-            ✅ Tasks
-          </h3>
-
-          <p className="text-5xl font-bold text-green-400 mt-4">
-
-            {stats.tasks}
-
-          </p>
-
-        </div>
-
-        <div className="bg-slate-800 rounded-3xl p-8">
-
-          <h3 className="text-gray-400">
-            🗓️ Meetings
-          </h3>
-
-          <p className="text-5xl font-bold text-yellow-400 mt-4">
-
-            {stats.meetings}
-
-          </p>
-
-        </div>
-
-        <div className="bg-slate-800 rounded-3xl p-8">
-
-          <h3 className="text-gray-400">
-            🎯 Completion
-          </h3>
-
-          <p className="text-5xl font-bold text-cyan-400 mt-4">
-
-            {completionRate}%
-
-          </p>
-
-        </div>
+            </div>
+          ))
+        }
 
       </div>
 
       {/* CHARTS */}
 
-      <div className="grid grid-cols-2 gap-8 mt-10">
+      <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
 
-        <div className="bg-slate-800 rounded-3xl p-6">
+        <div className="rounded-2xl border border-slate-800 bg-[#111528] p-6">
 
-          <h2 className="text-2xl font-bold mb-6">
+          <h2 className="mb-5 text-sm font-semibold uppercase tracking-wide text-slate-400">
 
-            📈 Project Overview
+            📈 Project overview
 
           </h2>
 
           <ResponsiveContainer
             width="100%"
-            height={300}
+            height={280}
           >
 
             <BarChart data={barData}>
 
-              <XAxis dataKey="name" />
+              <XAxis dataKey="name" stroke="#64748B" fontSize={12} tickLine={false} axisLine={{ stroke: "#1E293B" }} />
 
-              <YAxis />
+              <YAxis stroke="#64748B" fontSize={12} tickLine={false} axisLine={{ stroke: "#1E293B" }} />
 
-              <Tooltip />
+              <Tooltip
+                contentStyle={{
+                  background: "#0D1120",
+                  border: "1px solid #1E293B",
+                  borderRadius: "8px",
+                  color: "#E2E8F0"
+                }}
+              />
 
               <Bar
                 dataKey="value"
-                fill="#A855F7"
+                fill="#6366F1"
+                radius={[6, 6, 0, 0]}
               />
 
             </BarChart>
@@ -424,9 +403,9 @@ Overall Progress : ${score}%
 
         </div>
 
-        <div className="bg-slate-800 rounded-3xl p-6">
+        <div className="rounded-2xl border border-slate-800 bg-[#111528] p-6">
 
-          <h2 className="text-2xl font-bold mb-6">
+          <h2 className="mb-5 text-sm font-semibold uppercase tracking-wide text-slate-400">
 
             🥧 Distribution
 
@@ -434,7 +413,7 @@ Overall Progress : ${score}%
 
           <ResponsiveContainer
             width="100%"
-            height={300}
+            height={280}
           >
 
             <PieChart>
@@ -464,7 +443,14 @@ Overall Progress : ${score}%
 
               </Pie>
 
-              <Tooltip />
+              <Tooltip
+                contentStyle={{
+                  background: "#0D1120",
+                  border: "1px solid #1E293B",
+                  borderRadius: "8px",
+                  color: "#E2E8F0"
+                }}
+              />
 
             </PieChart>
 
@@ -476,107 +462,85 @@ Overall Progress : ${score}%
 
       {/* PROGRESS */}
 
-      <div className="bg-slate-800 rounded-3xl p-8 mt-10">
+      <div className="mt-8 rounded-2xl border border-slate-800 bg-[#111528] p-7">
 
-        <h2 className="text-3xl font-bold mb-6">
+        <h2 className="mb-5 text-sm font-semibold uppercase tracking-wide text-slate-400">
 
-          🎯 Project Completion Progress
+          🎯 Project completion progress
 
         </h2>
 
-        <div className="w-full bg-slate-700 rounded-full h-6">
+        <div className="h-3 w-full overflow-hidden rounded-full bg-slate-800">
 
           <div
 
-            className="
-              bg-purple-500
-              h-6
-              rounded-full
-              text-center
-              text-sm
-            "
+            className="flex h-3 items-center justify-end rounded-full bg-indigo-500 transition-all"
 
             style={{
               width: `${completionRate}%`
             }}
 
-          >
-
-            {completionRate}%
-
-          </div>
+          />
 
         </div>
 
+        <p className="mt-3 text-right text-sm font-medium text-indigo-400">
+          {completionRate}%
+        </p>
+
       </div>
-      <div className="bg-slate-800 rounded-3xl p-8 mt-10">
+      <div className="mt-8 rounded-2xl border border-slate-800 bg-[#111528] p-7">
 
-  <h2 className="text-3xl font-bold text-green-400 mb-6">
+  <h2 className="mb-5 text-sm font-semibold uppercase tracking-wide text-slate-400">
 
-    ❤️ AI Project Health Score
+    ❤️ AI project health score
 
   </h2>
 
-  <div className="w-full bg-slate-700 rounded-full h-8">
+  <div className="h-3 w-full overflow-hidden rounded-full bg-slate-800">
 
     <div
 
-      className="
-        bg-green-500
-        h-8
-        rounded-full
-        text-center
-        text-white
-        font-bold
-      "
+      className="h-3 rounded-full bg-emerald-500 transition-all"
 
       style={{
         width:
         `${healthScore}%`
       }}
 
-    >
-
-      {healthScore}%
-
-    </div>
+    />
 
   </div>
 
-  <p className="text-gray-300 mt-4">
+  <div className="mt-4 flex items-center justify-between">
 
-    Status :
+    <p className="text-sm text-slate-400">
 
-    {
+      Status
 
-      healthScore > 80
+    </p>
 
-      ? " 🟢 Healthy"
+    <span className={`flex items-center gap-1.5 text-sm font-medium ${healthStatus.text}`}>
+      <span className={`h-1.5 w-1.5 rounded-full ${healthStatus.dot}`} />
+      {healthStatus.label} · {healthScore}%
+    </span>
 
-      : healthScore > 50
-
-      ? " 🟡 Moderate"
-
-      : " 🔴 Critical"
-
-    }
-
-  </p>
+  </div>
 
 </div>
 
 
 
 
-<div className="bg-slate-800 rounded-3xl p-8 mt-10">
+<div className="mt-8 rounded-2xl border border-slate-800 bg-[#111528] p-7">
 
-  <h2 className="text-3xl font-bold text-cyan-400 mb-6">
+  <h2 className="mb-5 text-sm font-semibold uppercase tracking-wide text-slate-400">
 
-    🤖 AI Weekly Summary
+    🤖 AI weekly summary
 
   </h2>
 
-  <pre className="text-gray-300 whitespace-pre-wrap">
+  <pre className="whitespace-pre-wrap rounded-lg bg-[#0D1120] p-5 text-sm leading-relaxed text-slate-300">
 
     {weeklySummary}
 
@@ -586,31 +550,24 @@ Overall Progress : ${score}%
 
       {/* RECENT ACTIVITY */}
 
-      <div className="bg-slate-800 rounded-3xl p-8 mt-10">
+      <div className="mt-8 rounded-2xl border border-slate-800 bg-[#111528] p-7">
 
-        <h2 className="text-3xl font-bold mb-6">
+        <h2 className="mb-5 text-sm font-semibold uppercase tracking-wide text-slate-400">
 
-          ⚡ Recent Activity
+          ⚡ Recent activity
 
         </h2>
 
-        <div className="space-y-4">
+        <div className="space-y-2.5">
 
-          <div className="bg-slate-700 p-4 rounded-xl">
-            🟢 New Meeting Added
-          </div>
-
-          <div className="bg-slate-700 p-4 rounded-xl">
-            🟢 AI Summary Generated
-          </div>
-
-          <div className="bg-slate-700 p-4 rounded-xl">
-            🟡 Reminder Created
-          </div>
-
-          <div className="bg-slate-700 p-4 rounded-xl">
-            🔴 Risk Detected
-          </div>
+          {
+            activityFeed.map((item, idx) => (
+              <div key={idx} className="flex items-center gap-3 rounded-xl bg-[#0D1120] px-4 py-3 text-sm text-slate-300">
+                <span className={`h-2 w-2 shrink-0 rounded-full ${item.dot}`} />
+                {item.label}
+              </div>
+            ))
+          }
 
         </div>
 
