@@ -15,7 +15,7 @@ const documentRoutes = require("./routes/documentRoutes");
 const multiAgentRoutes = require("./routes/multiAgentRoutes");
 const meetingRoutes = require("./routes/meetingRoutes");
 const projectAiRoutes = require("./routes/projectAiRoutes");
-
+const chatRoutes = require("./routes/chatRoutes");
 const app = express();
 
 /* ========================= */
@@ -38,6 +38,9 @@ app.use("/rag", ragRoutes);
 
 app.use("/auth", authRoutes);
 app.use("/projects", projectRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/projects", projectRoutes);
+app.use("/api/chat", chatRoutes);
 app.use("/tasks", taskRoutes);
 app.use("/agents", agentRoutes);
 app.use("/ai", aiRoutes);

@@ -1,4 +1,5 @@
 const express = require("express");
+const chatModel = require("../models/chatModel");
 
 const {
   askNormalAI,
@@ -28,9 +29,10 @@ router.post("/chat", async (req, res) => {
   try {
 
     const {
-      prompt,
-      history = []
-    } = req.body;
+  chatId,
+  prompt,
+  history = []
+} = req.body;
 
 
     /* -----------------------------------------------
@@ -57,12 +59,25 @@ router.post("/chat", async (req, res) => {
     /* -----------------------------------------------
        ASK NORMAL AI
     ------------------------------------------------ */
-
+    if (chatId) {
+  await chatModel.saveMessage(
+    chatId,
+    "user",
+    prompt
+  );
+}
     const answer =
       await askNormalAI(
         prompt,
         history
       );
+    if (chatId) {
+  await chatModel.saveMessage(
+    chatId,
+    "assistant",
+    answer
+  );
+}
 
 
     /* -----------------------------------------------
