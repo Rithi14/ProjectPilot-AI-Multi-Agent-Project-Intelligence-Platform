@@ -33,3 +33,63 @@ app.use(cors({
 }));
 
 app.use(express.json());
+
+/* ========================= */
+/* ROUTES */
+/* ========================= */
+
+app.use("/documents", documentRoutes);
+app.use("/rag", ragRoutes);
+
+app.use("/auth", authRoutes);
+app.use("/projects", projectRoutes);
+
+app.use("/api/auth", authRoutes);
+app.use("/api/projects", projectRoutes);
+app.use("/api/chat", chatRoutes);
+
+app.use("/tasks", taskRoutes);
+app.use("/agents", agentRoutes);
+
+app.use("/ai", aiRoutes);
+app.use("/ai", aiTaskRoutes);
+
+app.use("/risk", riskRoutes);
+app.use("/multi-agent", multiAgentRoutes);
+app.use("/meetings", meetingRoutes);
+app.use("/project-ai", projectAiRoutes);
+app.use("/ai/recommendations", aiRecommendationRoutes);
+
+/* ========================= */
+/* HOME ROUTE */
+/* ========================= */
+
+app.get("/", (req, res) => {
+    res.json({
+        status: "success",
+        message: "AI MultiAgent Project Manager Backend Running Successfully"
+    });
+});
+
+/* ========================= */
+/* 404 */
+/* ========================= */
+
+app.use((req, res) => {
+    res.status(404).json({
+        success: false,
+        message: "Route Not Found"
+    });
+});
+
+/* ========================= */
+/* SERVER */
+/* ========================= */
+
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, "0.0.0.0", () => {
+    console.log("=====================================");
+    console.log(`🚀 Server running at http://0.0.0.0:${PORT}`);
+    console.log("=====================================");
+});
