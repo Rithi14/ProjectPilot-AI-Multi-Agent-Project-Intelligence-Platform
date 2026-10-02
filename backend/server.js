@@ -16,6 +16,7 @@ const multiAgentRoutes = require("./routes/multiAgentRoutes");
 const meetingRoutes = require("./routes/meetingRoutes");
 const projectAiRoutes = require("./routes/projectAiRoutes");
 const chatRoutes = require("./routes/chatRoutes");
+const aiRecommendationRoutes = require("./routes/aiRecommendationRoutes");
 const app = express();
 
 /* ========================= */
@@ -49,7 +50,7 @@ app.use("/risk", riskRoutes);
 app.use("/multi-agent", multiAgentRoutes);
 app.use("/meetings", meetingRoutes);
 app.use("/project-ai", projectAiRoutes);
-
+app.use("/ai/recommendations", aiRecommendationRoutes);
 /* ========================= */
 /* HOME ROUTE */
 /* ========================= */
